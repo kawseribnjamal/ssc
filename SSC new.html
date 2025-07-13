@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSC Result Portal - Chittagong Board</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e3f2fd, #e0f7fa);
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    h2 {
+      color: #004d40;
+    }
+    .container {
+      max-width: 450px;
+      margin: auto;
+    }
+    .form-box {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      text-align: left;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"],
+    input[type="password"],
+    input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #f1f8e9;
+    }
+    input[type="submit"], button {
+      padding: 10px 20px;
+      background: #4db6ac;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover, button:hover {
+      background: #00796b;
+    }
+    .toggle-link {
+      color: #00796b;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .user-info {
+      text-align: center;
+      background: #f1f8e9;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .user-info h4 {
+      margin-top: 0;
+      color: #004d40;
+    }
+    footer {
+      margin-top: 40px;
+      font-size: 14px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <h2>SSC Result Portal - Chittagong Board</h2>
+  <div class="container">
+    <!-- Registration Form -->
+    <div class="form-box" id="registerBox" style="display:none;">
+      <h3>User Registration</h3>
+      <form id="registerForm">
+        <label>Username:</label>
+        <input type="text" id="regUsername" required>
+        <label>Password:</label>
+        <input type="password" id="regPassword" required>
+        <label>Full Name:</label>
+        <input type="text" id="fullName" required>
+        <label>Mobile Number:</label>
+        <input type="text" id="phone" required>
+        <label>Institution:</label>
+        <input type="text" id="institute" required>
+        <label>Date of Birth:</label>
+        <input type="date" id="dob" required>
+        <input type="submit" value="Register">
+        <div style="margin-top:10px;">Already registered? <span class="toggle-link" onclick="showLogin()">Login here</span></div>
+      </form>
+    </div>
+
+    <!-- Login Form -->
+    <div class="form-box" id="loginBox">
+      <h3>User Login</h3>
+      <form id="loginForm">
+        <label>Username:</label>
+        <input type="text" id="loginUsername" required>
+        <label>Password:</label>
+        <input type="password" id="loginPassword" required>
+        <input type="submit" value="Login">
+        <div style="margin-top:10px;">New user? <span class="toggle-link" onclick="showRegister()">Register here</span></div>
+      </form>
+    </div>
+
+    <!-- Result Section -->
+    <div id="resultSection" style="display:none;">
+      <div class="user-info" id="userInfo"></div>
+      <button onclick="logout()">Logout</button>
+
+      <div class="form-box">
+        <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" method="post" target="_blank">
+          <label>SSC Roll 2025:</label>
+          <input type="text" name="roll" required>
+          <input type="submit" value="Check Result">
+        </form>
+      </div>
+      <div class="form-box">
+        <form action="https://sresult.bise-ctg.gov.bd/s24/individual/result.php" method="post" target="_blank">
+          <label>SSC Roll 2024:</label>
+          <input type="text" name="roll" required>
+          <input type="submit" value="Check Result">
+        </form>
+      </div>
+      <div class="form-box">
+        <form action="https://sresult.bise-ctg.gov.bd/s2023/individual/result.php" method="post" target="_blank">
+          <label>SSC Roll 2023:</label>
+          <input type="text" name="roll" required>
+          <input type="submit" value="Check Result">
+        </form>
+      </div>
+      <div class="form-box">
+        <form action="https://sresult.bise-ctg.gov.bd/s22/individual/result.php" method="post" target="_blank">
+          <label>SSC Roll 2022:</label>
+          <input type="text" name="roll" required>
+          <input type="submit" value="Check Result">
+        </form>
+      </div>
+      <div class="form-box">
+        <form action="https://sresult.bise-ctg.gov.bd/individual/result.php" method="post" target="_blank">
+          <label>SSC Roll 2021:</label>
+          <input type="text" name="roll" required>
+          <input type="submit" value="Check Result">
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer>© 2025 Abdullah Al Kawser</footer>
+
+  <script>
+    function showRegister() {
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('registerBox').style.display = 'block';
+    }
+    function showLogin() {
+      document.getElementById('registerBox').style.display = 'none';
+      document.getElementById('loginBox').style.display = 'block';
+    }
+    function logout() {
+      document.getElementById('resultSection').style.display = 'none';
+      document.getElementById('loginBox').style.display = 'block';
+    }
+
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const user = {
+        username: document.getElementById('regUsername').value,
+        password: document.getElementById('regPassword').value,
+        fullName: document.getElementById('fullName').value,
+        phone: document.getElementById('phone').value,
+        institute: document.getElementById('institute').value,
+        dob: document.getElementById('dob').value
+      };
+      localStorage.setItem('user_' + user.username, JSON.stringify(user));
+      alert('Registration successful. Please login.');
+      showLogin();
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+      const user = JSON.parse(localStorage.getItem('user_' + username));
+      if (user && user.password === password) {
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('registerBox').style.display = 'none';
+        document.getElementById('resultSection').style.display = 'block';
+        document.getElementById('userInfo').innerHTML = `
+          <h4>Welcome, <span style="color:#00796b">${user.fullName}</span></h4>
+        `;
+      } else {
+        alert('Invalid login credentials');
+      }
+    });
+  </script>
+</body>
+</html>
