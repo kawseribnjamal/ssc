@@ -2,81 +2,85 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Panel - SSC Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard - SSC Result Portal</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f8;
-      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      padding: 30px;
+      text-align: center;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
     }
     h2 {
-      color: #004d40;
-    }
-    .admin-controls {
-      margin-bottom: 20px;
-    }
-    input[type="text"] {
-      padding: 8px;
-      width: 250px;
-      margin-right: 10px;
-    }
-    button {
-      padding: 8px 12px;
-      background: #00796b;
-      border: none;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-right: 5px;
-    }
-    button:hover {
-      background: #004d40;
+      color: #333;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-top: 20px;
     }
     th, td {
-      padding: 10px;
       border: 1px solid #ddd;
+      padding: 8px;
       text-align: left;
     }
     th {
-      background: #e0f2f1;
+      background-color: #4caf50;
+      color: white;
+    }
+    button {
+      padding: 8px 15px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+    button:hover {
+      background: #388e3c;
     }
   </style>
 </head>
 <body>
-  <h2>Admin Dashboard - SSC Result Portal</h2>
-
-  <div class="admin-controls">
-    <input type="text" id="searchInput" placeholder="Search by Username or Phone">
-    <button onclick="searchUsers()">Search</button>
-    <button onclick="exportToExcel()">Download Excel</button>
+  <div class="container">
+    <h2>Admin Dashboard</h2>
+    <p id="status">Checking admin access...</p>
     <button onclick="logout()">Logout</button>
+
+    <div id="userTableContainer" style="display:none;">
+      <h3>Registered Users</h3>
+      <input type="text" id="searchBox" placeholder="Search by username or phone" oninput="filterUsers()" style="width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 5px; border:1px solid #ccc;" />
+      <table id="userTable">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Full Name</th>
+            <th>Phone</th>
+            <th>Institution</th>
+            <th>Date of Birth</th>
+            <th>Gender</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button onclick="exportToExcel()">Download Excel</button>
+    </div>
   </div>
 
-  <table id="userTable">
-    <thead>
-      <tr>
-        <th>Full Name</th>
-        <th>Username</th>
-        <th>Phone</th>
-        <th>Institute</th>
-        <th>DOB</th>
-        <th>Gender</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="userList"></tbody>
-  </table>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
@@ -88,38 +92,74 @@
     };
 
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // 🔐 Prevent unauthorized access
-    if (localStorage.getItem("admin") !== "true") {
-      alert("Unauthorized access! Redirecting to home...");
-      window.location.href = "index.html";
-    }
+    const adminUID = "RDorlaTlE7UFhNrhSj7GVmR3k5p1";
+    let usersData = [];
 
-    let allUsers = [];
+    auth.onAuthStateChanged(user => {
+      if (user && user.uid === adminUID) {
+        document.getElementById("status").innerText = `✅ Welcome Admin: ${user.email}`;
+        loadUsers();
+      } else {
+        document.getElementById("status").innerText = "❌ Unauthorized access. Redirecting...";
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 2000);
+      }
+    });
 
     async function loadUsers() {
       const snapshot = await db.collection("users").get();
-      const userList = document.getElementById("userList");
-      userList.innerHTML = "";
-      allUsers = [];
-
+      usersData = [];
+      const tbody = document.querySelector("#userTable tbody");
+      tbody.innerHTML = "";
       snapshot.forEach(doc => {
-        const user = doc.data();
-        allUsers.push(user);
-
+        const data = doc.data();
+        usersData.push({...data, id: doc.id});
         const tr = document.createElement("tr");
+        tr.setAttribute("data-id", doc.id);
         tr.innerHTML = `
-          <td>${user.fullName}</td>
-          <td>${user.username}</td>
-          <td>${user.phone}</td>
-          <td>${user.institute}</td>
-          <td>${user.dob}</td>
-          <td>${user.gender || ""}</td>
-          <td><button onclick="deleteUser('${doc.id}')">Delete</button></td>
+          <td>${data.username}</td>
+          <td>${data.fullName}</td>
+          <td>${data.phone}</td>
+          <td>${data.institute}</td>
+          <td>${data.dob}</td>
+          <td>${data.gender || ''}</td>
+          <td>
+            <button onclick="deleteUser('${doc.id}')">Delete</button>
+            <button onclick="editUser('${doc.id}')">Edit</button>
+          </td>
         `;
-        userList.appendChild(tr);
+        tbody.appendChild(tr);
       });
+      document.getElementById("userTableContainer").style.display = "block";
+    }
+
+    function filterUsers() {
+      const searchTerm = document.getElementById("searchBox").value.toLowerCase();
+      const tbody = document.querySelector("#userTable tbody");
+      tbody.innerHTML = "";
+      usersData
+        .filter(user => user.username.toLowerCase().includes(searchTerm) || user.phone.toLowerCase().includes(searchTerm))
+        .forEach(user => {
+          const tr = document.createElement("tr");
+          tr.setAttribute("data-id", user.id);
+          tr.innerHTML = `
+            <td>${user.username}</td>
+            <td>${user.fullName}</td>
+            <td>${user.phone}</td>
+            <td>${user.institute}</td>
+            <td>${user.dob}</td>
+            <td>${user.gender || ''}</td>
+            <td>
+              <button onclick="deleteUser('${user.id}')">Delete</button>
+              <button onclick="editUser('${user.id}')">Edit</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
     }
 
     async function deleteUser(id) {
@@ -129,28 +169,45 @@
       }
     }
 
-    function searchUsers() {
-      const keyword = document.getElementById("searchInput").value.toLowerCase();
-      const rows = document.querySelectorAll("#userList tr");
-      rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(keyword) ? "" : "none";
+    function editUser(id) {
+      const user = usersData.find(u => u.id === id);
+      if (!user) return;
+      const fullName = prompt("Full Name:", user.fullName);
+      if (fullName === null) return;
+      const phone = prompt("Phone:", user.phone);
+      if (phone === null) return;
+      const institute = prompt("Institution:", user.institute);
+      if (institute === null) return;
+      const dob = prompt("Date of Birth (YYYY-MM-DD):", user.dob);
+      if (dob === null) return;
+      const gender = prompt("Gender (Male/Female/Other):", user.gender || "");
+      if (gender === null) return;
+
+      db.collection("users").doc(id).update({
+        fullName,
+        phone,
+        institute,
+        dob,
+        gender
+      }).then(() => {
+        alert("User updated successfully!");
+        loadUsers();
       });
     }
 
     function exportToExcel() {
-      const ws = XLSX.utils.json_to_sheet(allUsers);
+      const exportData = usersData.map(({id, ...rest}) => rest);
+      const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Users");
       XLSX.writeFile(wb, "Registered_Users.xlsx");
     }
 
     function logout() {
-      localStorage.removeItem("admin");
-      window.location.href = "index.html";
+      auth.signOut().then(() => {
+        window.location.href = "index.html";
+      });
     }
-
-    loadUsers();
   </script>
 </body>
 </html>
