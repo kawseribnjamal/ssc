@@ -6,6 +6,7 @@
   <title>SSC Result Portal - Chittagong Board</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -133,7 +134,11 @@
 
     <div id="resultSection" style="display:none;">
       <div class="user-info" id="userInfo"></div>
-      <div class="admin-list" id="adminList"></div>
+      <div style="display:none;" id="adminControls">
+        <button onclick="toggleUserList()">Show Registered Users</button>
+        <button onclick="exportToExcel()">Download as Excel</button>
+      </div>
+      <div class="admin-list" id="adminList" style="display:none;"></div>
       <button onclick="logout()">Logout</button>
 
       <div class="form-box">
@@ -200,6 +205,8 @@
     function logout() {
       document.getElementById("resultSection").style.display = "none";
       document.getElementById("loginBox").style.display = "block";
+      document.getElementById("adminControls").style.display = "none";
+      document.getElementById("adminList").style.display = "none";
     }
 
     document.getElementById("registerForm").addEventListener("submit", async function (e) {
@@ -221,8 +228,16 @@
       const snapshot = await db.collection("users").get();
       const adminList = document.getElementById("adminList");
       adminList.innerHTML = '<h4>All Registered Users</h4>';
+      window.userDataExport = [];
       snapshot.forEach(doc => {
         const data = doc.data();
+        window.userDataExport.push({
+          Username: data.username,
+          FullName: data.fullName,
+          Phone: data.phone,
+          Institute: data.institute,
+          DOB: data.dob
+        });
         const div = document.createElement("div");
         div.className = "admin-user";
         div.innerHTML = `
@@ -240,6 +255,22 @@
       }
     }
 
+    function toggleUserList() {
+      const list = document.getElementById("adminList");
+      if (list.style.display === "none") {
+        list.style.display = "block";
+      } else {
+        list.style.display = "none";
+      }
+    }
+
+    function exportToExcel() {
+      const ws = XLSX.utils.json_to_sheet(window.userDataExport);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Users");
+      XLSX.writeFile(wb, "Registered_Users.xlsx");
+    }
+
     document.getElementById("loginForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       const username = document.getElementById("loginUsername").value;
@@ -250,6 +281,7 @@
         document.getElementById("loginBox").style.display = "none";
         document.getElementById("registerBox").style.display = "none";
         document.getElementById("resultSection").style.display = "block";
+        document.getElementById("adminControls").style.display = "block";
         loadUsersForAdmin();
       } else {
         const snapshot = await db.collection("users").where("username", "==", username).where("password", "==", password).get();
