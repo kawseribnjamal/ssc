@@ -8,10 +8,58 @@
   body {
     font-family: 'Segoe UI', sans-serif;
     background: linear-gradient(to right, #e3f2fd, #e0f7fa);
-    margin: 0; padding: 20px; max-width: 500px; margin-left: auto; margin-right: auto;
+    margin: 0; padding: 20px; max-width: 700px; margin-left: auto; margin-right: auto;
   }
-  h2 {
-    color: #004d40; text-align: center;
+  header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .user-menu {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    user-select: none;
+  }
+  .user-icon {
+    width: 32px;
+    height: 32px;
+    background-color: #4db6ac;
+    border-radius: 50%;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 8px;
+  }
+  .dropdown {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    display: none;
+    flex-direction: column;
+    width: 160px;
+    z-index: 1000;
+  }
+  .dropdown a {
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #004d40;
+    border-bottom: 1px solid #eee;
+  }
+  .dropdown a:hover {
+    background: #e0f7fa;
+  }
+  .dropdown a:last-child {
+    border-bottom: none;
   }
   .container {
     background: white;
@@ -19,176 +67,250 @@
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
-  label {
-    display: block; margin-top: 10px; font-weight: bold; text-align: left;
-  }
-  input[type="text"], input[type="date"], input[type="password"] {
-    width: 100%; padding: 10px; margin-top: 5px;
-    border-radius: 6px; border: 1px solid #ccc; background: #f1f8e9;
-  }
-  button {
-    margin-top: 15px; padding: 10px 20px; background: #4db6ac; border: none;
-    color: white; border-radius: 6px; cursor: pointer;
-  }
-  button:hover {
-    background: #00796b;
-  }
-  .logout-btn {
-    margin-top: 10px;
-    background: #616161;
-  }
   footer {
     margin-top: 40px;
     font-size: 14px;
     color: #777;
     text-align: center;
   }
+  /* Hide sections initially */
+  section {
+    display: none;
+  }
+  section.active {
+    display: block;
+  }
+  label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  input[type="text"], input[type="date"], input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #f1f8e9;
+  }
+  button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #4db6ac;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #00796b;
+  }
 </style>
 </head>
 <body>
-<h2>User Dashboard</h2>
-<div class="container" id="profileSection">
-  <form id="profileForm">
-    <label>Full Name:</label>
-    <input type="text" id="fullName" required />
 
-    <label>Mobile Number:</label>
-    <input type="text" id="phone" required />
+<header>
+  <div class="user-menu" id="userMenu">
+    <div class="user-icon" id="userIcon"></div>
+    <div id="userName"></div>
+  </div>
+  <div class="dropdown" id="dropdownMenu">
+    <a href="#" data-section="profileSection">Update Profile</a>
+    <a href="#" data-section="passwordSection">Change Password</a>
+    <a href="#" id="logoutBtn">Logout</a>
+  </div>
+</header>
 
-    <label>Institution:</label>
-    <input type="text" id="institute" required />
+<div class="container">
 
-    <label>Date of Birth:</label>
-    <input type="date" id="dob" required />
+  <!-- Profile Section -->
+  <section id="profileSection">
+    <h2>Update Profile</h2>
+    <form id="profileForm">
+      <label>Full Name:</label>
+      <input type="text" id="fullName" required />
+      <label>Mobile Number:</label>
+      <input type="text" id="phone" required />
+      <label>Institution:</label>
+      <input type="text" id="institute" required />
+      <label>Date of Birth:</label>
+      <input type="date" id="dob" required />
+      <label>Gender:</label>
+      <input type="text" id="gender" placeholder="Optional" />
+      <button type="submit">Update Profile</button>
+    </form>
+  </section>
 
-    <label>Gender:</label>
-    <input type="text" id="gender" placeholder="Optional" />
+  <!-- Change Password Section -->
+  <section id="passwordSection">
+    <h2>Change Password</h2>
+    <form id="passwordForm">
+      <label>Current Password:</label>
+      <input type="password" id="currentPassword" required />
+      <label>New Password:</label>
+      <input type="password" id="newPassword" required />
+      <label>Confirm New Password:</label>
+      <input type="password" id="confirmPassword" required />
+      <button type="submit">Change Password</button>
+    </form>
+  </section>
 
-    <button type="submit">Update Profile</button>
-  </form>
+  <!-- Dashboard Section -->
+  <section id="dashboardSection" class="active">
+    <h2>SSC Result Portal - User Dashboard</h2>
+
+    <div>
+      <h3>Check SSC Results</h3>
+      <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" method="post" target="_blank">
+        <label>SSC Roll 2025:</label>
+        <input type="text" name="roll" required />
+        <input type="submit" value="Check Result" />
+      </form>
+      <form action="https://sresult.bise-ctg.gov.bd/s24/individual/result.php" method="post" target="_blank" style="margin-top:10px;">
+        <label>SSC Roll 2024:</label>
+        <input type="text" name="roll" required />
+        <input type="submit" value="Check Result" />
+      </form>
+      <form action="https://sresult.bise-ctg.gov.bd/s2023/individual/result.php" method="post" target="_blank" style="margin-top:10px;">
+        <label>SSC Roll 2023:</label>
+        <input type="text" name="roll" required />
+        <input type="submit" value="Check Result" />
+      </form>
+      <form action="https://sresult.bise-ctg.gov.bd/s22/individual/result.php" method="post" target="_blank" style="margin-top:10px;">
+        <label>SSC Roll 2022:</label>
+        <input type="text" name="roll" required />
+        <input type="submit" value="Check Result" />
+      </form>
+      <form action="https://sresult.bise-ctg.gov.bd/individual/result.php" method="post" target="_blank" style="margin-top:10px;">
+        <label>SSC Roll 2021:</label>
+        <input type="text" name="roll" required />
+        <input type="submit" value="Check Result" />
+      </form>
+    </div>
+  </section>
+
 </div>
-
-<div class="container" style="margin-top:20px;">
-  <h3>Change Password</h3>
-  <form id="passwordForm">
-    <label>Old Password:</label>
-    <input type="password" id="oldPassword" required />
-    <label>New Password:</label>
-    <input type="password" id="newPassword" required />
-    <label>Confirm New Password:</label>
-    <input type="password" id="confirmPassword" required />
-    <button type="submit">Change Password</button>
-    <p id="passwordError" style="color:red;"></p>
-  </form>
-</div>
-
-<div class="container" style="margin-top:20px;">
-  <h3>Check SSC Results</h3>
-  <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" method="post" target="_blank">
-    <label>SSC Roll 2025:</label>
-    <input type="text" name="roll" required />
-    <input type="submit" value="Check Result" />
-  </form>
-  <form action="https://sresult.bise-ctg.gov.bd/s24/individual/result.php" method="post" target="_blank" style="margin-top:10px;">
-    <label>SSC Roll 2024:</label>
-    <input type="text" name="roll" required />
-    <input type="submit" value="Check Result" />
-  </form>
-  <form action="https://sresult.bise-ctg.gov.bd/s2023/individual/result.php" method="post" target="_blank" style="margin-top:10px;">
-    <label>SSC Roll 2023:</label>
-    <input type="text" name="roll" required />
-    <input type="submit" value="Check Result" />
-  </form>
-  <form action="https://sresult.bise-ctg.gov.bd/s22/individual/result.php" method="post" target="_blank" style="margin-top:10px;">
-    <label>SSC Roll 2022:</label>
-    <input type="text" name="roll" required />
-    <input type="submit" value="Check Result" />
-  </form>
-  <form action="https://sresult.bise-ctg.gov.bd/individual/result.php" method="post" target="_blank" style="margin-top:10px;">
-    <label>SSC Roll 2021:</label>
-    <input type="text" name="roll" required />
-    <input type="submit" value="Check Result" />
-  </form>
-</div>
-
-<button class="logout-btn" onclick="logout()">Logout</button>
 
 <footer>© 2025 Abdullah Al Kawser</footer>
 
 <script>
-  // Redirect if not logged in
+  // Dropdown toggle
+  const userMenu = document.getElementById("userMenu");
+  const dropdown = document.getElementById("dropdownMenu");
+  userMenu.addEventListener("click", () => {
+    dropdown.style.display = (dropdown.style.display === "flex") ? "none" : "flex";
+  });
+  window.addEventListener("click", function(e){
+    if(!userMenu.contains(e.target) && !dropdown.contains(e.target)){
+      dropdown.style.display = "none";
+    }
+  });
+
+  // Logout
+  document.getElementById("logoutBtn").addEventListener("click", e => {
+    e.preventDefault();
+    localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("userRole");
+    window.location.href = "index.html";
+  });
+
+  // Check login status on load
   const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
   if(!loggedInUser || localStorage.getItem("userRole") !== "user"){
     alert("Please login first.");
     window.location.href = "index.html";
   }
 
-  // Populate profile fields
-  document.getElementById("fullName").value = loggedInUser.fullName;
-  document.getElementById("phone").value = loggedInUser.phone;
-  document.getElementById("institute").value = loggedInUser.institute;
-  document.getElementById("dob").value = loggedInUser.dob;
-  document.getElementById("gender").value = loggedInUser.gender || "";
+  // Show user info in header
+  document.getElementById("userIcon").innerText = loggedInUser.fullName ? loggedInUser.fullName[0].toUpperCase() : "U";
+  document.getElementById("userName").innerText = loggedInUser.fullName || loggedInUser.username;
 
-  // Profile update
+  // Section switching logic
+  const sections = document.querySelectorAll("section");
+  const dropdownLinks = dropdown.querySelectorAll("a[data-section]");
+  dropdownLinks.forEach(link => {
+    link.addEventListener("click", e => {
+      e.preventDefault();
+      const targetSection = e.target.getAttribute("data-section");
+      sections.forEach(sec => sec.classList.remove("active"));
+      document.getElementById(targetSection).classList.add("active");
+      dropdown.style.display = "none";
+    });
+  });
+
+  // Profile update form submit
   document.getElementById("profileForm").addEventListener("submit", function(e){
     e.preventDefault();
     let users = JSON.parse(localStorage.getItem("users")) || [];
-    let userIndex = users.findIndex(u => u.username === loggedInUser.username);
-    if(userIndex !== -1){
-      users[userIndex].fullName = document.getElementById("fullName").value.trim();
-      users[userIndex].phone = document.getElementById("phone").value.trim();
-      users[userIndex].institute = document.getElementById("institute").value.trim();
-      users[userIndex].dob = document.getElementById("dob").value;
-      users[userIndex].gender = document.getElementById("gender").value.trim();
+    let idx = users.findIndex(u => u.username === loggedInUser.username);
+    if(idx !== -1){
+      users[idx].fullName = document.getElementById("fullName").value.trim();
+      users[idx].phone = document.getElementById("phone").value.trim();
+      users[idx].institute = document.getElementById("institute").value.trim();
+      users[idx].dob = document.getElementById("dob").value;
+      users[idx].gender = document.getElementById("gender").value.trim();
       localStorage.setItem("users", JSON.stringify(users));
-      loggedInUser.fullName = users[userIndex].fullName;
-      loggedInUser.phone = users[userIndex].phone;
-      loggedInUser.institute = users[userIndex].institute;
-      loggedInUser.dob = users[userIndex].dob;
-      loggedInUser.gender = users[userIndex].gender;
+
+      // Update loggedInUser also
+      loggedInUser.fullName = users[idx].fullName;
+      loggedInUser.phone = users[idx].phone;
+      loggedInUser.institute = users[idx].institute;
+      loggedInUser.dob = users[idx].dob;
+      loggedInUser.gender = users[idx].gender;
       localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
+
       alert("Profile updated successfully.");
+      // Update header name/icon
+      document.getElementById("userIcon").innerText = loggedInUser.fullName[0].toUpperCase();
+      document.getElementById("userName").innerText = loggedInUser.fullName;
     }
   });
 
-  // Change password
+  // Fill profile form on load
+  document.getElementById("fullName").value = loggedInUser.fullName || "";
+  document.getElementById("phone").value = loggedInUser.phone || "";
+  document.getElementById("institute").value = loggedInUser.institute || "";
+  document.getElementById("dob").value = loggedInUser.dob || "";
+  document.getElementById("gender").value = loggedInUser.gender || "";
+
+  // Change password form
   document.getElementById("passwordForm").addEventListener("submit", function(e){
     e.preventDefault();
-    let oldPass = document.getElementById("oldPassword").value;
-    let newPass = document.getElementById("newPassword").value;
-    let confirmPass = document.getElementById("confirmPassword").value;
-    const passwordError = document.getElementById("passwordError");
+    const currentPass = document.getElementById("currentPassword").value;
+    const newPass = document.getElementById("newPassword").value;
+    const confirmPass = document.getElementById("confirmPassword").value;
 
+    if(currentPass !== loggedInUser.password){
+      alert("Current password is incorrect.");
+      return;
+    }
     if(newPass !== confirmPass){
-      passwordError.innerText = "New password and confirm password do not match.";
+      alert("New password and confirmation do not match.");
       return;
     }
-    if(oldPass !== loggedInUser.password){
-      passwordError.innerText = "Old password is incorrect.";
+    if(newPass.length < 6){
+      alert("New password should be at least 6 characters.");
       return;
     }
+
     let users = JSON.parse(localStorage.getItem("users")) || [];
-    let userIndex = users.findIndex(u => u.username === loggedInUser.username);
-    if(userIndex !== -1){
-      users[userIndex].password = newPass;
+    let idx = users.findIndex(u => u.username === loggedInUser.username);
+    if(idx !== -1){
+      users[idx].password = newPass;
       localStorage.setItem("users", JSON.stringify(users));
       loggedInUser.password = newPass;
       localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
       alert("Password changed successfully.");
-      passwordError.innerText = "";
-      // Clear password fields
-      document.getElementById("oldPassword").value = "";
+      // Clear password inputs
+      document.getElementById("currentPassword").value = "";
       document.getElementById("newPassword").value = "";
       document.getElementById("confirmPassword").value = "";
+      // Optionally, redirect to dashboard
+      sections.forEach(sec => sec.classList.remove("active"));
+      document.getElementById("dashboardSection").classList.add("active");
     }
   });
-
-  function logout(){
-    localStorage.removeItem("loggedInUser");
-    localStorage.removeItem("userRole");
-    window.location.href = "index.html";
-  }
 </script>
+
 </body>
 </html>
