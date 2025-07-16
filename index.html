@@ -63,13 +63,31 @@
       cursor: pointer;
       text-decoration: underline;
     }
-    .user-info {
+    .user-info, .admin-list {
       text-align: center;
       background: #f1f8e9;
       padding: 15px;
       border-radius: 10px;
       margin-bottom: 20px;
       font-size: 16px;
+    }
+    .admin-user {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 8px;
+    }
+    .admin-user span {
+      flex: 1;
+      text-align: left;
+    }
+    .admin-user button {
+      margin-left: 5px;
+      padding: 5px 10px;
     }
     footer {
       margin-top: 40px;
@@ -115,6 +133,7 @@
 
     <div id="resultSection" style="display:none;">
       <div class="user-info" id="userInfo"></div>
+      <div class="admin-list" id="adminList"></div>
       <button onclick="logout()">Logout</button>
 
       <div class="form-box">
@@ -198,28 +217,44 @@
       showLogin();
     });
 
+    async function loadUsersForAdmin() {
+      const snapshot = await db.collection("users").get();
+      const adminList = document.getElementById("adminList");
+      adminList.innerHTML = '<h4>All Registered Users</h4>';
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "admin-user";
+        div.innerHTML = `
+          <span><strong>${data.fullName}</strong> (${data.username})<br>${data.phone} - ${data.institute}</span>
+          <button onclick="deleteUser('${doc.id}')">Delete</button>
+        `;
+        adminList.appendChild(div);
+      });
+    }
+
+    async function deleteUser(id) {
+      if (confirm("Are you sure to delete this user?")) {
+        await db.collection("users").doc(id).delete();
+        loadUsersForAdmin();
+      }
+    }
+
     document.getElementById("loginForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       const username = document.getElementById("loginUsername").value;
       const password = document.getElementById("loginPassword").value;
 
       if (username === "admin" && password === "123456") {
-        // Admin login
-        const querySnapshot = await db.collection("users").get();
-        let html = '<h4>All Registered Users:</h4><ul style="text-align:left">';
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          html += `<li><strong>${data.fullName}</strong> | ${data.phone} | ${data.institute}</li>`;
-        });
-        html += '</ul>';
-        document.getElementById("userInfo").innerHTML = html;
+        document.getElementById("userInfo").innerHTML = `<p><strong>Welcome, Admin</strong></p>`;
         document.getElementById("loginBox").style.display = "none";
         document.getElementById("registerBox").style.display = "none";
         document.getElementById("resultSection").style.display = "block";
+        loadUsersForAdmin();
       } else {
-        const userSnapshot = await db.collection("users").where("username", "==", username).where("password", "==", password).get();
-        if (!userSnapshot.empty) {
-          const user = userSnapshot.docs[0].data();
+        const snapshot = await db.collection("users").where("username", "==", username).where("password", "==", password).get();
+        if (!snapshot.empty) {
+          const user = snapshot.docs[0].data();
           document.getElementById("userInfo").innerHTML = `<p><strong>Welcome, ${user.fullName}</strong></p>`;
           document.getElementById("loginBox").style.display = "none";
           document.getElementById("registerBox").style.display = "none";
