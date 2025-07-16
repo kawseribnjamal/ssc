@@ -46,20 +46,29 @@
         e.preventDefault();
         const username = document.getElementById("loginUsername").value;
         const password = document.getElementById("loginPassword").value;
-        const user = JSON.parse(localStorage.getItem("user_" + username));
-        if (user && user.password === password) {
-          document.getElementById("loginBox").style.display = "none";
-          document.getElementById("registerBox").style.display = "none";
-          document.getElementById("resultSection").style.display = "block";
-          showAllUsers();
+
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("registerBox").style.display = "none";
+        document.getElementById("resultSection").style.display = "block";
+
+        if (username === "admin" && password === "6162636465") {
+          // Fixed admin user
+          await showAllUsers();
         } else {
-          alert("Invalid login credentials");
+          const user = JSON.parse(localStorage.getItem("user_" + username));
+          if (user && user.password === password) {
+            userInfo.innerHTML = `<p><strong>Welcome, ${user.fullName}</strong></p>`;
+          } else {
+            alert("Invalid login credentials");
+            showLogin();
+            return;
+          }
         }
       });
 
       async function showAllUsers() {
         const querySnapshot = await getDocs(collection(db, "users"));
-        let html = '<h4>Registered Users:</h4><ul style="text-align:left">';
+        let html = '<h4>All Registered Users:</h4><ul style="text-align:left">';
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           html += `<li><strong>${data.fullName}</strong> | ${data.phone} | ${data.institute}</li>`;
