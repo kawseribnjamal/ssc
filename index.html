@@ -1,51 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SSC Result Portal - Login</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #e3f2fd, #e0f7fa);
-      margin: 0; padding: 20px; text-align: center;
-    }
-    .container {
-      max-width: 450px; margin: auto;
-      background: white; padding: 20px; border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    label {
-      display: block; text-align: left; font-weight: bold; margin-top: 10px;
-    }
-    input[type="text"], input[type="password"], input[type="date"], select {
-      width: 95%; padding: 10px; border-radius: 6px; border: 1px solid #ccc;
-      background: #f1f8e9; margin: 5px auto 15px auto; display: block;
-    }
-    input[type="submit"], button {
-      padding: 10px 20px; background: #4db6ac; border: none; color: white;
-      border-radius: 6px; cursor: pointer;
-    }
-    input[type="submit"]:hover, button:hover {
-      background: #00796b;
-    }
-    .toggle-link {
-      color: #00796b; cursor: pointer; text-decoration: underline;
-    }
-    footer {
-      margin-top: 40px; font-size: 14px; color: #777;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SSC Result Portal - Chittagong Board</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to right, #e3f2fd, #e0f7fa);
+    margin: 0; padding: 20px; text-align: center;
+  }
+  h2 { color: #004d40; }
+  .container {
+    max-width: 450px;
+    margin: auto;
+  }
+  .form-box {
+    background: white;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  label {
+    display: block; text-align: left;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  input[type="text"],
+  input[type="password"],
+  input[type="date"] {
+    width: 95%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #f1f8e9;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  input[type="submit"], button {
+    padding: 10px 20px;
+    background: #4db6ac;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  input[type="submit"]:hover, button:hover {
+    background: #00796b;
+  }
+  .toggle-link {
+    color: #00796b;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .user-info {
+    text-align: center;
+    background: #f1f8e9;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 16px;
+  }
+  footer {
+    margin-top: 40px;
+    font-size: 14px;
+    color: #777;
+  }
+</style>
 </head>
 <body>
-
   <h2>SSC Result Portal - Chittagong Board</h2>
-
   <div class="container">
-    <!-- Register Box -->
-    <div id="registerBox" style="display:none;">
+    <div class="form-box" id="registerBox" style="display:none;">
       <h3>User Registration</h3>
       <form id="registerForm">
         <label>Username:</label>
@@ -60,20 +89,14 @@
         <input type="text" id="institute" required />
         <label>Date of Birth:</label>
         <input type="date" id="dob" required />
-        <label>Gender:</label>
-        <select id="gender" required>
-          <option value="">Select Gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
         <input type="submit" value="Register" />
+        <div style="margin-top:10px;">
+          Already registered? <span class="toggle-link" onclick="showLogin()">Login here</span>
+        </div>
       </form>
-      <p style="margin-top:10px;">Already registered? <span class="toggle-link" onclick="showLogin()">Login here</span></p>
     </div>
 
-    <!-- Login Box -->
-    <div id="loginBox">
+    <div class="form-box" id="loginBox">
       <h3>User Login</h3>
       <form id="loginForm">
         <label>Username:</label>
@@ -81,100 +104,83 @@
         <label>Password:</label>
         <input type="password" id="loginPassword" required />
         <input type="submit" value="Login" />
+        <div style="margin-top:10px;">
+          New user? <span class="toggle-link" onclick="showRegister()">Register here</span>
+        </div>
       </form>
-      <p style="margin-top:10px;">New user? <span class="toggle-link" onclick="showRegister()">Register here</span></p>
     </div>
   </div>
-
   <footer>© 2025 Abdullah Al Kawser</footer>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
-      authDomain: "sscresult-b774b.firebaseapp.com",
-      projectId: "sscresult-b774b",
-      storageBucket: "sscresult-b774b.appspot.com",
-      messagingSenderId: "386108440083",
-      appId: "1:386108440083:web:9f8811ef165282269549e6",
-      measurementId: "G-GGZ9Q2489E"
+<script>
+  function showRegister() {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("registerBox").style.display = "block";
+  }
+  function showLogin() {
+    document.getElementById("registerBox").style.display = "none";
+    document.getElementById("loginBox").style.display = "block";
+  }
+
+  // Users stored in localStorage for demo
+  function getUsers() {
+    const users = localStorage.getItem("users");
+    return users ? JSON.parse(users) : [];
+  }
+  function saveUsers(users) {
+    localStorage.setItem("users", JSON.stringify(users));
+  }
+
+  document.getElementById("registerForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const users = getUsers();
+    const username = document.getElementById("regUsername").value.trim();
+    if(users.some(u => u.username === username)){
+      alert("Username already exists.");
+      return;
+    }
+    const user = {
+      username,
+      password: document.getElementById("regPassword").value,
+      fullName: document.getElementById("fullName").value,
+      phone: document.getElementById("phone").value,
+      institute: document.getElementById("institute").value,
+      dob: document.getElementById("dob").value,
+      registrationDate: new Date().toISOString(),
+      lastLogin: null,
+      gender: '' // you can add gender field here if needed
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    users.push(user);
+    saveUsers(users);
+    alert("Registration successful. Please login.");
+    showLogin();
+  });
 
-    function showRegister() {
-      document.getElementById("loginBox").style.display = "none";
-      document.getElementById("registerBox").style.display = "block";
+  document.getElementById("loginForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    const username = document.getElementById("loginUsername").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    const users = getUsers();
+
+    // Admin credentials hardcoded
+    if(username === "abdullah" && password === "6162636465"){
+      localStorage.setItem("userRole", "admin");
+      window.location.href = "admin.html";
+      return;
     }
-    function showLogin() {
-      document.getElementById("registerBox").style.display = "none";
-      document.getElementById("loginBox").style.display = "block";
+
+    const user = users.find(u => u.username === username && u.password === password);
+    if(user){
+      user.lastLogin = new Date().toISOString();
+      saveUsers(users);
+      localStorage.setItem("loggedInUser", JSON.stringify(user));
+      localStorage.setItem("userRole", "user");
+      // No welcome message, direct redirect
+      window.location.href = "user-dashboard.html";
+    } else {
+      alert("Invalid login credentials");
     }
-
-    document.getElementById("registerForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-      const username = document.getElementById("regUsername").value.trim();
-      const password = document.getElementById("regPassword").value.trim();
-      const fullName = document.getElementById("fullName").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const institute = document.getElementById("institute").value.trim();
-      const dob = document.getElementById("dob").value;
-      const gender = document.getElementById("gender").value;
-
-      if(!username || !password) {
-        alert("Username and password are required.");
-        return;
-      }
-      // Check if username already exists
-      const userExists = await db.collection("users").where("username", "==", username).get();
-      if (!userExists.empty) {
-        alert("Username already exists. Please choose another.");
-        return;
-      }
-
-      await db.collection("users").add({
-        username,
-        password,
-        fullName,
-        phone,
-        institute,
-        dob,
-        gender
-      });
-      alert("Registration successful! Please login.");
-      showLogin();
-    });
-
-    document.getElementById("loginForm").addEventListener("submit", async function(e) {
-      e.preventDefault();
-      const username = document.getElementById("loginUsername").value.trim();
-      const password = document.getElementById("loginPassword").value.trim();
-
-      // Check admin credentials hardcoded
-      if(username === "abdullah" && password === "6162636465") {
-        alert("Admin login successful!");
-        localStorage.setItem("userRole", "admin");
-        window.location.href = "admin.html";
-        return;
-      }
-
-      // Check user credentials from Firestore
-      const querySnapshot = await db.collection("users").where("username", "==", username).where("password", "==", password).get();
-      if (!querySnapshot.empty) {
-        const userData = querySnapshot.docs[0].data();
-        alert(`Welcome, ${userData.fullName}`);
-        localStorage.setItem("userRole", "user");
-        localStorage.setItem("username", username);
-        localStorage.setItem("fullName", userData.fullName);
-        localStorage.setItem("phone", userData.phone);
-        localStorage.setItem("institute", userData.institute);
-        localStorage.setItem("dob", userData.dob);
-        localStorage.setItem("gender", userData.gender);
-        window.location.href = "user-dashboard.html"; // আপনি চাইলে এখানে ইউজারের জন্য আলাদা পেজ বানাতে পারেন
-      } else {
-        alert("Invalid username or password");
-      }
-    });
-  </script>
-
+  });
+</script>
 </body>
 </html>
