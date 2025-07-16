@@ -1,183 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SSC Result Portal - Chittagong Board</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #e3f2fd, #e0f7fa);
-      margin: 0;
+      background: #f0f8ff;
       padding: 20px;
       text-align: center;
     }
-    h2 {
-      color: #004d40;
-    }
-    .container {
-      max-width: 450px;
-      margin: auto;
-    }
     .form-box {
       background: white;
-      padding: 20px;
-      margin: 20px 0;
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 25px;
       border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    label {
-      display: block;
-      text-align: left;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input[type="text"],
-    input[type="password"],
-    input[type="date"] {
-      width: 95%;
+    input[type="text"], input[type="password"] {
+      width: 90%;
       padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 6px;
+      margin: 10px auto;
       border: 1px solid #ccc;
-      background: #f1f8e9;
-      margin-left: auto;
-      margin-right: auto;
+      border-radius: 5px;
       display: block;
     }
     input[type="submit"], button {
       padding: 10px 20px;
-      background: #4db6ac;
+      background: #4caf50;
       border: none;
       color: white;
-      border-radius: 6px;
       cursor: pointer;
+      border-radius: 5px;
     }
     input[type="submit"]:hover, button:hover {
-      background: #00796b;
+      background: #388e3c;
     }
-    .toggle-link {
-      color: #00796b;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-    .user-info, .admin-list {
-      text-align: center;
-      background: #f1f8e9;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      font-size: 16px;
-    }
-    .admin-user {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-bottom: 8px;
-    }
-    .admin-user span {
-      flex: 1;
-      text-align: left;
-    }
-    .admin-user button {
-      margin-left: 5px;
-      padding: 5px 10px;
+    a {
+      text-decoration: none;
+      color: #007BFF;
     }
     footer {
-      margin-top: 40px;
-      font-size: 14px;
+      margin-top: 50px;
       color: #777;
+    }
+    #adminLinkBox {
+      margin-bottom: 15px;
+      display: none;
     }
   </style>
 </head>
 <body>
+
   <h2>SSC Result Portal - Chittagong Board</h2>
-  <div class="container">
-    <div class="form-box" id="registerBox" style="display:none;">
-      <h3>User Registration</h3>
-      <form id="registerForm">
-        <label>Username:</label>
-        <input type="text" id="regUsername" required>
-        <label>Password:</label>
-        <input type="password" id="regPassword" required>
-        <label>Full Name:</label>
-        <input type="text" id="fullName" required>
-        <label>Mobile Number:</label>
-        <input type="text" id="phone" required>
-        <label>Institution:</label>
-        <input type="text" id="institute" required>
-        <label>Date of Birth:</label>
-        <input type="date" id="dob" required>
-        <input type="submit" value="Register">
-        <div style="margin-top:10px;">Already registered? <span class="toggle-link" onclick="showLogin()">Login here</span></div>
-      </form>
-    </div>
 
-    <div class="form-box" id="loginBox">
-      <h3>User Login</h3>
-      <form id="loginForm">
-        <label>Username:</label>
-        <input type="text" id="loginUsername" required>
-        <label>Password:</label>
-        <input type="password" id="loginPassword" required>
-        <input type="submit" value="Login">
-        <div style="margin-top:10px;">New user? <span class="toggle-link" onclick="showRegister()">Register here</span></div>
-      </form>
-    </div>
-
-    <div id="resultSection" style="display:none;">
-      <div class="user-info" id="userInfo"></div>
-      <div style="display:none;" id="adminControls">
-        <button onclick="toggleUserList()">Show Registered Users</button>
-        <button onclick="exportToExcel()">Download as Excel</button>
-      </div>
-      <div class="admin-list" id="adminList" style="display:none;"></div>
-      <button onclick="logout()">Logout</button>
-
-      <div class="form-box">
-        <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" method="post" target="_blank">
-          <label>SSC Roll 2025:</label>
-          <input type="text" name="roll" required>
-          <input type="submit" value="Check Result">
-        </form>
-      </div>
-      <div class="form-box">
-        <form action="https://sresult.bise-ctg.gov.bd/s24/individual/result.php" method="post" target="_blank">
-          <label>SSC Roll 2024:</label>
-          <input type="text" name="roll" required>
-          <input type="submit" value="Check Result">
-        </form>
-      </div>
-      <div class="form-box">
-        <form action="https://sresult.bise-ctg.gov.bd/s2023/individual/result.php" method="post" target="_blank">
-          <label>SSC Roll 2023:</label>
-          <input type="text" name="roll" required>
-          <input type="submit" value="Check Result">
-        </form>
-      </div>
-      <div class="form-box">
-        <form action="https://sresult.bise-ctg.gov.bd/s22/individual/result.php" method="post" target="_blank">
-          <label>SSC Roll 2022:</label>
-          <input type="text" name="roll" required>
-          <input type="submit" value="Check Result">
-        </form>
-      </div>
-      <div class="form-box">
-        <form action="https://sresult.bise-ctg.gov.bd/individual/result.php" method="post" target="_blank">
-          <label>SSC Roll 2021:</label>
-          <input type="text" name="roll" required>
-          <input type="submit" value="Check Result">
-        </form>
-      </div>
-    </div>
+  <div class="form-box" id="loginBox">
+    <h3>User Login</h3>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Email (Admin uses Firebase Email)" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <input type="submit" value="Login" />
+    </form>
   </div>
+
+  <div id="resultSection" style="display:none;">
+    <p><strong id="welcomeText"></strong></p>
+
+    <div id="adminLinkBox">
+      <a href="admin.html"><button>Go to Admin Panel</button></a>
+    </div>
+
+    <div class="form-box">
+      <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" method="post" target="_blank">
+        <label>SSC Roll 2025:</label>
+        <input type="text" name="roll" required />
+        <input type="submit" value="Check Result" />
+      </form>
+    </div>
+    <div class="form-box">
+      <form action="https://sresult.bise-ctg.gov.bd/s24/individual/result.php" method="post" target="_blank">
+        <label>SSC Roll 2024:</label>
+        <input type="text" name="roll" required />
+        <input type="submit" value="Check Result" />
+      </form>
+    </div>
+    <div class="form-box">
+      <form action="https://sresult.bise-ctg.gov.bd/s2023/individual/result.php" method="post" target="_blank">
+        <label>SSC Roll 2023:</label>
+        <input type="text" name="roll" required />
+        <input type="submit" value="Check Result" />
+      </form>
+    </div>
+    <div class="form-box">
+      <form action="https://sresult.bise-ctg.gov.bd/s22/individual/result.php" method="post" target="_blank">
+        <label>SSC Roll 2022:</label>
+        <input type="text" name="roll" required />
+        <input type="submit" value="Check Result" />
+      </form>
+    </div>
+    <div class="form-box">
+      <form action="https://sresult.bise-ctg.gov.bd/individual/result.php" method="post" target="_blank">
+        <label>SSC Roll 2021:</label>
+        <input type="text" name="roll" required />
+        <input type="submit" value="Check Result" />
+      </form>
+    </div>
+
+    <button onclick="logout()">Logout</button>
+  </div>
+
   <footer>© 2025 Abdullah Al Kawser</footer>
 
   <script>
@@ -187,115 +123,43 @@
       projectId: "sscresult-b774b",
       storageBucket: "sscresult-b774b.appspot.com",
       messagingSenderId: "386108440083",
-      appId: "1:386108440083:web:9f8811ef165282269549e6",
-      measurementId: "G-GGZ9Q2489E"
+      appId: "1:386108440083:web:9f8811ef165282269549e6"
     };
 
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const adminUID = "RDorlaTlE7UFhNrhSj7GVmR3k5p1"; // Your Admin UID from Firebase Console
 
-    function showRegister() {
-      document.getElementById("loginBox").style.display = "none";
-      document.getElementById("registerBox").style.display = "block";
-    }
-    function showLogin() {
-      document.getElementById("registerBox").style.display = "none";
-      document.getElementById("loginBox").style.display = "block";
-    }
-    function logout() {
-      document.getElementById("resultSection").style.display = "none";
-      document.getElementById("loginBox").style.display = "block";
-      document.getElementById("adminControls").style.display = "none";
-      document.getElementById("adminList").style.display = "none";
-    }
-
-    document.getElementById("registerForm").addEventListener("submit", async function (e) {
+    document.getElementById("loginForm").addEventListener("submit", async function(e) {
       e.preventDefault();
-      const user = {
-        username: document.getElementById("regUsername").value,
-        password: document.getElementById("regPassword").value,
-        fullName: document.getElementById("fullName").value,
-        phone: document.getElementById("phone").value,
-        institute: document.getElementById("institute").value,
-        dob: document.getElementById("dob").value
-      };
-      await db.collection("users").add(user);
-      alert("Registration successful. Please login.");
-      showLogin();
+      const email = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        if (user.uid === adminUID) {
+          document.getElementById("welcomeText").innerText = "Welcome, Admin";
+          document.getElementById("adminLinkBox").style.display = "block";
+        } else {
+          document.getElementById("welcomeText").innerText = "Welcome, User";
+          document.getElementById("adminLinkBox").style.display = "none";
+        }
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("resultSection").style.display = "block";
+      } catch (error) {
+        alert("Login failed: " + error.message);
+      }
     });
 
-    async function loadUsersForAdmin() {
-      const snapshot = await db.collection("users").get();
-      const adminList = document.getElementById("adminList");
-      adminList.innerHTML = '<h4>All Registered Users</h4>';
-      window.userDataExport = [];
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        window.userDataExport.push({
-          Username: data.username,
-          FullName: data.fullName,
-          Phone: data.phone,
-          Institute: data.institute,
-          DOB: data.dob
-        });
-        const div = document.createElement("div");
-        div.className = "admin-user";
-        div.innerHTML = `
-          <span><strong>${data.fullName}</strong> (${data.username})<br>${data.phone} - ${data.institute}</span>
-          <button onclick="deleteUser('${doc.id}')">Delete</button>
-        `;
-        adminList.appendChild(div);
+    function logout() {
+      auth.signOut().then(() => {
+        document.getElementById("resultSection").style.display = "none";
+        document.getElementById("loginBox").style.display = "block";
+        document.getElementById("welcomeText").innerText = "";
+        document.getElementById("adminLinkBox").style.display = "none";
       });
     }
-
-    async function deleteUser(id) {
-      if (confirm("Are you sure to delete this user?")) {
-        await db.collection("users").doc(id).delete();
-        loadUsersForAdmin();
-      }
-    }
-
-    function toggleUserList() {
-      const list = document.getElementById("adminList");
-      if (list.style.display === "none") {
-        list.style.display = "block";
-      } else {
-        list.style.display = "none";
-      }
-    }
-
-    function exportToExcel() {
-      const ws = XLSX.utils.json_to_sheet(window.userDataExport);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Users");
-      XLSX.writeFile(wb, "Registered_Users.xlsx");
-    }
-
-    document.getElementById("loginForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const username = document.getElementById("loginUsername").value;
-      const password = document.getElementById("loginPassword").value;
-
-      if (username === "admin" && password === "123456") {
-        document.getElementById("userInfo").innerHTML = `<p><strong>Welcome, Admin</strong></p>`;
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("registerBox").style.display = "none";
-        document.getElementById("resultSection").style.display = "block";
-        document.getElementById("adminControls").style.display = "block";
-        loadUsersForAdmin();
-      } else {
-        const snapshot = await db.collection("users").where("username", "==", username).where("password", "==", password).get();
-        if (!snapshot.empty) {
-          const user = snapshot.docs[0].data();
-          document.getElementById("userInfo").innerHTML = `<p><strong>Welcome, ${user.fullName}</strong></p>`;
-          document.getElementById("loginBox").style.display = "none";
-          document.getElementById("registerBox").style.display = "none";
-          document.getElementById("resultSection").style.display = "block";
-        } else {
-          alert("Invalid login credentials");
-        }
-      }
-    });
   </script>
 </body>
 </html>
