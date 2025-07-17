@@ -1,171 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login / Register</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login & Register</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f0f4f7;
-      margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f1f1;
       display: flex;
-      height: 100vh;
       justify-content: center;
       align-items: center;
+      height: 100vh;
     }
     .container {
       background: white;
-      padding: 20px 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 30px;
+      border-radius: 8px;
       width: 100%;
       max-width: 400px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     h2 {
       text-align: center;
-      color: #444;
+      margin-bottom: 20px;
     }
     input, select {
       width: 100%;
       padding: 10px;
       margin-top: 10px;
-      border-radius: 5px;
       border: 1px solid #ccc;
+      border-radius: 5px;
     }
     button {
       width: 100%;
       padding: 10px;
-      margin-top: 15px;
-      background: #007bff;
+      background: #28a745;
       color: white;
       border: none;
-      border-radius: 5px;
-    }
-    .toggle-link {
-      text-align: center;
       margin-top: 15px;
-      color: #007bff;
+      border-radius: 5px;
       cursor: pointer;
     }
-    .hidden { display: none; }
+    .toggle-link {
+      color: #007bff;
+      cursor: pointer;
+      display: block;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h2 id="form-title">User Login</h2>
+  <div class="container">
+    <!-- Login Form -->
+    <div id="loginForm">
+      <h2>🔓 User Login</h2>
+      <input type="text" id="loginUsername" placeholder="Mobile Number">
+      <input type="password" id="loginPassword" placeholder="Password">
+      <button onclick="login()">Login</button>
+      <p class="toggle-link" onclick="showRegister()">Create a new account</p>
+      <hr>
+      <h2>🔐 Admin Login</h2>
+      <input type="text" id="adminUsername" placeholder="Admin Username">
+      <input type="password" id="adminPassword" placeholder="Admin Password">
+      <button onclick="adminLogin()">Admin Login</button>
+    </div>
 
-  <div id="login-form">
-    <input type="text" id="login-username" placeholder="Mobile Number" required />
-    <input type="password" id="login-password" placeholder="Password" required />
-    <button onclick="login()">Login</button>
-    <div class="toggle-link" onclick="toggleForm()">Create New Account</div>
+    <!-- Registration Form -->
+    <div id="registerForm" class="hidden">
+      <h2>📝 Register</h2>
+      <input type="text" id="regName" placeholder="Full Name">
+      <input type="text" id="regMobile" placeholder="Mobile Number">
+      <input type="text" id="regInstitution" placeholder="Institution">
+      <input type="date" id="regDob" placeholder="Date of Birth">
+      <select id="regGender">
+        <option value="">Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+      <input type="password" id="regPassword" placeholder="Password">
+      <input type="password" id="regConfirmPassword" placeholder="Confirm Password">
+      <button onclick="register()">Register</button>
+      <p class="toggle-link" onclick="showLogin()">Back to Login</p>
+    </div>
   </div>
 
-  <div id="register-form" class="hidden">
-    <input type="text" id="reg-name" placeholder="Full Name" required />
-    <input type="text" id="reg-mobile" placeholder="Mobile Number" required />
-    <input type="text" id="reg-institution" placeholder="Institution" required />
-    <input type="date" id="reg-dob" placeholder="Date of Birth" required />
-    <select id="reg-gender">
-      <option value="" disabled selected>Gender</option>
-      <option value="Male">Male</option>
-      <option value="Female">Female</option>
-      <option value="Other">Other</option>
-    </select>
-    <input type="password" id="reg-password" placeholder="Password" required />
-    <input type="password" id="reg-confirm" placeholder="Confirm Password" required />
-    <button onclick="register()">Register</button>
-    <div class="toggle-link" onclick="toggleForm()">Already have an account?</div>
-  </div>
-</div>
-
-<script type="module">
-  // Firebase config
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
-    authDomain: "sscresult-b774b.firebaseapp.com",
-    databaseURL: "https://sscresult-b774b-default-rtdb.firebaseio.com",
-    projectId: "sscresult-b774b",
-    storageBucket: "sscresult-b774b.firebasestorage.app",
-    messagingSenderId: "386108440083",
-    appId: "1:386108440083:web:9f8811ef165282269549e6",
-    measurementId: "G-GGZ9Q2489E"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
-
-  // Toggle Login/Register
-  window.toggleForm = () => {
-    const loginForm = document.getElementById('login-form');
-    const regForm = document.getElementById('register-form');
-    const formTitle = document.getElementById('form-title');
-    if (loginForm.classList.contains('hidden')) {
-      loginForm.classList.remove('hidden');
-      regForm.classList.add('hidden');
-      formTitle.innerText = 'User Login';
-    } else {
-      loginForm.classList.add('hidden');
-      regForm.classList.remove('hidden');
-      formTitle.innerText = 'Register Account';
-    }
-  }
-
-  // Login Function
-  window.login = () => {
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-
-    if (username === 'abdullah' && password === '6162636465') {
-      alert('Admin Login Successful');
-      window.location.href = "admin.html";
-      return;
+  <script>
+    function showRegister() {
+      document.getElementById("loginForm").classList.add("hidden");
+      document.getElementById("registerForm").classList.remove("hidden");
     }
 
-    const email = username + "@sscresult.com"; // fake email using mobile
-    signInWithEmailAndPassword(auth, email, password)
-      .then(() => {
-        alert('User Login Successful');
-        window.location.href = "user-dashboard.html";
-      })
-      .catch(err => alert('Login Error: ' + err.message));
-  }
-
-  // Register Function
-  window.register = () => {
-    const name = document.getElementById('reg-name').value;
-    const mobile = document.getElementById('reg-mobile').value;
-    const institution = document.getElementById('reg-institution').value;
-    const dob = document.getElementById('reg-dob').value;
-    const gender = document.getElementById('reg-gender').value;
-    const password = document.getElementById('reg-password').value;
-    const confirm = document.getElementById('reg-confirm').value;
-
-    if (password !== confirm) {
-      alert("Passwords do not match");
-      return;
+    function showLogin() {
+      document.getElementById("registerForm").classList.add("hidden");
+      document.getElementById("loginForm").classList.remove("hidden");
     }
 
-    const email = mobile + "@sscresult.com";
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCred) => {
-        const uid = userCred.user.uid;
-        set(ref(db, 'users/' + uid), {
-          name, mobile, institution, dob, gender, username: mobile, createdAt: new Date().toISOString()
-        });
-        alert('Registration Successful');
-        toggleForm();
-      })
-      .catch(err => alert('Registration Error: ' + err.message));
-  }
-</script>
+    function login() {
+      const user = document.getElementById("loginUsername").value;
+      const pass = document.getElementById("loginPassword").value;
+      alert("Login function placeholder: " + user);
+    }
+
+    function register() {
+      const mobile = document.getElementById("regMobile").value;
+      const pass = document.getElementById("regPassword").value;
+      const confirm = document.getElementById("regConfirmPassword").value;
+      if (pass !== confirm) {
+        alert("Passwords do not match!");
+        return;
+      }
+      alert("Registration function placeholder: " + mobile);
+    }
+
+    function adminLogin() {
+      const user = document.getElementById("adminUsername").value;
+      const pass = document.getElementById("adminPassword").value;
+      if (user === "abdullah" && pass === "6162636465") {
+        alert("✅ Admin Logged In");
+        window.location.href = "admin.html";
+      } else {
+        alert("❌ Invalid admin credentials");
+      }
+    }
+  </script>
+
+  <!-- Firebase Config -->
+  <script type="module">
+    // Import the functions you need from the SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
+      authDomain: "sscresult-b774b.firebaseapp.com",
+      databaseURL: "https://sscresult-b774b-default-rtdb.firebaseio.com",
+      projectId: "sscresult-b774b",
+      storageBucket: "sscresult-b774b.firebasestorage.app",
+      messagingSenderId: "386108440083",
+      appId: "1:386108440083:web:9f8811ef165282269549e6",
+      measurementId: "G-GGZ9Q2489E"
+    };
+    const app = initializeApp(firebaseConfig);
+  </script>
+
 </body>
 </html>
