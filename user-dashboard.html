@@ -6,10 +6,10 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
-    body { text-align:center; font-family:Arial,sans-serif; padding:20px; background: #e0f7fa;}
-    .container { max-width:500px; margin:auto; background:white; padding:20px; border-radius:8px;}
-    input, button { width: 95%; padding:10px; margin:10px 0; border-radius:6px; border:1px solid #ccc;}
-    button { background:#4db6ac; color:white; cursor:pointer;}
+    body { text-align:center; font-family:Arial,sans-serif; padding:20px; background:#e0f7fa; }
+    .container { max-width:500px; margin:auto; background:white; padding:20px; border-radius:8px; }
+    input, button { width:95%; padding:10px; margin:10px 0; border-radius:6px; border:1px solid #ccc; }
+    button { background:#4db6ac; color:white; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -17,6 +17,7 @@
     <h2 id="welcome">Welcome!</h2>
     <button onclick="logout()">Logout</button>
     <h3>Check Your SSC Results</h3>
+
     <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" method="post" target="_blank">
       <input type="text" name="roll" placeholder="SSC Roll 2025" required><button type="submit">Check 2025</button>
     </form>
@@ -33,20 +34,40 @@
       <input type="text" name="roll" placeholder="SSC Roll 2021" required><button type="submit">Check 2021</button>
     </form>
   </div>
+
   <script>
-    const firebaseConfig = { apiKey:"...", authDomain:"...", projectId:"sscresult-b774b" };
+    const firebaseConfig = {
+      apiKey: "...",
+      authDomain: "...",
+      projectId: "sscresult-b774b"
+    };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     const params = new URLSearchParams(window.location.search);
     const uid = params.get('userId');
-    db.collection('users').doc(uid).get().then(doc => {
-      if (!doc.exists) return window.location.href='index.html';
-      const u = doc.data();
-      document.getElementById('welcome').innerText = `Welcome, ${u.fullName}!`;
-    });
 
-    function logout(){ window.location.href = 'index.html'; }
+    // যদি userId না থাকে, তাহলে লগইন পেজে পাঠাবে
+    if (!uid) {
+      window.location.href = 'index.html';
+    } else {
+      db.collection('users').doc(uid).get().then(doc => {
+        if (!doc.exists) {
+          window.location.href = 'index.html';
+        } else {
+          const user = doc.data();
+          document.getElementById('welcome').innerText = `Welcome, ${user.fullName}!`;
+        }
+      }).catch(error => {
+        console.error("Error:", error);
+        window.location.href = 'index.html';
+      });
+    }
+
+    function logout() {
+      window.location.href = 'index.html';
+    }
   </script>
 </body>
 </html>
