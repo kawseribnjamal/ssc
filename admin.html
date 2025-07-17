@@ -101,7 +101,6 @@
             <th>Gender</th>
             <th>Registered</th>
             <th>Last Login</th>
-            <th>Save</th>
             <th>Delete</th>
           </tr>
         </thead>
@@ -160,7 +159,6 @@
           <td contenteditable onblur="updateField('${u.id}','gender',this.innerText)">${u.gender}</td>
           <td>${u.registrationDate || ''}</td>
           <td>${u.lastLogin || ''}</td>
-          <td><button class="action-btn edit" onclick="updateField('${u.id}','','')">Save</button></td>
           <td><button class="action-btn delete" onclick="deleteUser('${u.id}')">Delete</button></td>`;
         tbody.appendChild(tr);
       });
