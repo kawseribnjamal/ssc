@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>User Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
     body { text-align:center; font-family:Arial,sans-serif; padding:20px; background:#e0f7fa; }
@@ -17,7 +18,6 @@
     <h2 id="welcome">Welcome!</h2>
     <button onclick="logout()">Logout</button>
     <h3>Check Your SSC Results</h3>
-
     <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" method="post" target="_blank">
       <input type="text" name="roll" placeholder="SSC Roll 2025" required><button type="submit">Check 2025</button>
     </form>
@@ -36,37 +36,39 @@
   </div>
 
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "...",
       authDomain: "...",
       projectId: "sscresult-b774b"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    const params = new URLSearchParams(window.location.search);
-    const uid = params.get('userId');
-
-    // যদি userId না থাকে, তাহলে লগইন পেজে পাঠাবে
-    if (!uid) {
-      window.location.href = 'index.html';
-    } else {
-      db.collection('users').doc(uid).get().then(doc => {
-        if (!doc.exists) {
-          window.location.href = 'index.html';
-        } else {
-          const user = doc.data();
-          document.getElementById('welcome').innerText = `Welcome, ${user.fullName}!`;
-        }
-      }).catch(error => {
-        console.error("Error:", error);
+    // Check user authentication
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        // User not logged in, redirect to login
         window.location.href = 'index.html';
-      });
-    }
+      } else {
+        // User is logged in, get user data
+        const uid = user.uid;
+        db.collection('users').doc(uid).get().then(doc => {
+          if (doc.exists) {
+            const data = doc.data();
+            document.getElementById('welcome').innerText = `Welcome, ${data.fullName || 'User'}!`;
+          } else {
+            alert("User record not found!");
+          }
+        });
+      }
+    });
 
     function logout() {
-      window.location.href = 'index.html';
+      firebase.auth().signOut().then(() => {
+        window.location.href = 'index.html';
+      });
     }
   </script>
 </body>
