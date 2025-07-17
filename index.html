@@ -1,94 +1,187 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SSC Portal – Login/Register</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <title>Login & Registration</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #eef7f7; text-align: center; padding: 40px; }
-    .box { background: #fff; padding: 25px; margin: 20px auto; max-width: 400px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
-    input, select { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
-    button { padding: 10px 20px; background: #00796b; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-    button:hover { background: #004d40; }
-    .toggle { color: #00796b; cursor: pointer; text-decoration: underline; margin-top: 10px; }
+    body {
+      font-family: Arial;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 400px;
+      background: white;
+      margin: 40px auto;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: teal;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: darkslategray;
+    }
+
+    .form-section {
+      margin-bottom: 30px;
+    }
+
+    .admin-login {
+      background-color: #f8f8f8;
+      padding: 10px;
+      border: 1px dashed gray;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
-  <h2>SSC Result Portal</h2>
+  <div class="container">
+    <h2>User Registration</h2>
+    <div class="form-section">
+      <input type="text" id="name" placeholder="Full Name" />
+      <input type="text" id="mobile" placeholder="Mobile Number" />
+      <input type="text" id="institution" placeholder="Institution" />
+      <input type="date" id="dob" placeholder="Date of Birth" />
+      <select id="gender">
+        <option value="">Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="password" id="regPassword" placeholder="Password" />
+      <input type="password" id="confirmPassword" placeholder="Confirm Password" />
+      <button onclick="registerUser()">Register</button>
+    </div>
 
-  <div class="box" id="loginBox">
-    <h3>Login</h3>
-    <input type="text" id="loginUsername" placeholder="Username or Admin Username" required>
-    <input type="password" id="loginPassword" placeholder="Password" required>
-    <button onclick="loginUser()">Login</button>
-    <div class="toggle" onclick="toggleForm()">New user? Register</div>
+    <h2>User Login</h2>
+    <div class="form-section">
+      <input type="text" id="loginMobile" placeholder="Mobile Number" />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <button onclick="loginUser()">Login</button>
+    </div>
+
+    <h2>Admin Login</h2>
+    <div class="form-section admin-login">
+      <input type="text" id="adminUser" placeholder="Username (e.g. abdullah)" />
+      <input type="password" id="adminPass" placeholder="Password" />
+      <button onclick="adminLogin()">Login as Admin</button>
+    </div>
   </div>
 
-  <div class="box" id="registerBox" style="display:none;">
-    <h3>Register</h3>
-    <input type="text" id="regFullName" placeholder="Full Name" required>
-    <input type="text" id="regPhone" placeholder="Mobile Number" required>
-    <input type="text" id="regInstitute" placeholder="Institution" required>
-    <input type="date" id="regDob" required>
-    <select id="regGender" required>
-      <option value="">Gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
-    </select>
-    <input type="text" id="regUsername" placeholder="Username" required>
-    <input type="password" id="regPassword" placeholder="Password" required>
-    <button onclick="registerUser()">Register</button>
-    <div class="toggle" onclick="toggleForm()">Already registered? Login</div>
-  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
       authDomain: "sscresult-b774b.firebaseapp.com",
-      projectId: "sscresult-b774b"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const toggleForm = () => {
-      document.getElementById('loginBox').style.display = document.getElementById('loginBox').style.display === 'none' ? 'block' : 'none';
-      document.getElementById('registerBox').style.display = document.getElementById('registerBox').style.display === 'none' ? 'block' : 'none';
+      databaseURL: "https://sscresult-b774b-default-rtdb.firebaseio.com",
+      projectId: "sscresult-b774b",
+      storageBucket: "sscresult-b774b.appspot.com",
+      messagingSenderId: "386108440083",
+      appId: "1:386108440083:web:9f8811ef165282269549e6",
+      measurementId: "G-GGZ9Q2489E"
     };
 
-    async function registerUser() {
-      await db.collection("users").add({
-        fullName: document.getElementById("regFullName").value,
-        phone: document.getElementById("regPhone").value,
-        institute: document.getElementById("regInstitute").value,
-        dob: document.getElementById("regDob").value,
-        gender: document.getElementById("regGender").value,
-        username: document.getElementById("regUsername").value,
-        password: document.getElementById("regPassword").value,
-        createdAt: new Date().toISOString()
-      });
-      alert("Registered! Login now.");
-      toggleForm();
-    }
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-    async function loginUser() {
-      let u = document.getElementById("loginUsername").value;
-      let p = document.getElementById("loginPassword").value;
+    function registerUser() {
+      const name = document.getElementById("name").value;
+      const mobile = document.getElementById("mobile").value;
+      const institution = document.getElementById("institution").value;
+      const dob = document.getElementById("dob").value;
+      const gender = document.getElementById("gender").value;
+      const password = document.getElementById("regPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
 
-      // Admin login logic
-      if (u === "abdullah" && p === "6162636465") {
-        sessionStorage.setItem("role", "admin");
-        window.location.href = "admin.html";
+      if (!name || !mobile || !institution || !dob || !gender || !password || !confirmPassword) {
+        alert("Please fill out all fields.");
         return;
       }
 
-      // User login
-      const snap = await db.collection("users").where("username", "==", u).where("password", "==", p).get();
-      if (!snap.empty) {
-        const data = snap.docs[0].data();
-        sessionStorage.setItem("role", "user");
-        sessionStorage.setItem("userData", JSON.stringify(data));
-        window.location.href = "user-dashboard.html";
+      if (password !== confirmPassword) {
+        alert("Passwords do not match.");
+        return;
+      }
+
+      const email = `${mobile}@dummy.com`;
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const userId = userCredential.user.uid;
+          set(ref(db, "users/" + userId), {
+            name,
+            mobile,
+            institution,
+            dob,
+            gender
+          });
+          alert("Registration Successful!");
+        })
+        .catch((error) => {
+          alert("Error: " + error.message);
+        });
+    }
+
+    function loginUser() {
+      const mobile = document.getElementById("loginMobile").value;
+      const password = document.getElementById("loginPassword").value;
+      const email = `${mobile}@dummy.com`;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          window.location.href = "user-dashboard.html";
+        })
+        .catch((error) => {
+          alert("Login failed: " + error.message);
+        });
+    }
+
+    window.registerUser = registerUser;
+    window.loginUser = loginUser;
+
+    window.adminLogin = function () {
+      const user = document.getElementById("adminUser").value;
+      const pass = document.getElementById("adminPass").value;
+
+      if (user === "abdullah" && pass === "6162636465") {
+        window.location.href = "admin.html";
       } else {
-        alert("Invalid credentials!");
+        alert("Invalid Admin Credentials");
       }
     }
   </script>
