@@ -6,19 +6,18 @@
   <title>SSC Result Portal - Chittagong Board</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(to right, #e3f2fd, #e0f7fa);
-      margin: 0;
-      padding: 20px;
-      text-align: center;
+      margin: 0; padding: 20px; text-align: center;
     }
     h2 {
       color: #004d40;
     }
     .container {
-      max-width: 450px;
+      max-width: 480px;
       margin: auto;
     }
     .form-box {
@@ -26,13 +25,13 @@
       padding: 20px;
       margin: 20px 0;
       border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: left;
     }
     label {
       display: block;
-      text-align: left;
-      margin-bottom: 5px;
-      font-weight: bold;
+      margin-bottom: 6px;
+      font-weight: 600;
     }
     input[type="text"],
     input[type="password"],
@@ -44,61 +43,91 @@
       border-radius: 6px;
       border: 1px solid #ccc;
       background: #f1f8e9;
-      margin-left: auto;
-      margin-right: auto;
       display: block;
     }
-    input[type="submit"], button {
-      padding: 10px 20px;
+    input[type="submit"],
+    button {
+      padding: 10px 22px;
       background: #4db6ac;
       border: none;
       color: white;
       border-radius: 6px;
       cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
     }
-    input[type="submit"]:hover, button:hover {
+    input[type="submit"]:hover,
+    button:hover {
       background: #00796b;
     }
     .toggle-link {
       color: #00796b;
       cursor: pointer;
       text-decoration: underline;
+      font-weight: 600;
     }
     .user-info {
-      text-align: center;
       background: #f1f8e9;
       padding: 15px;
       border-radius: 10px;
       margin-bottom: 20px;
       font-size: 16px;
+      text-align: center;
+    }
+    #adminControls {
+      margin-bottom: 15px;
+      display: none;
+    }
+    #adminList {
+      background: #f1f8e9;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: none;
+      max-height: 300px;
+      overflow-y: auto;
+      text-align: left;
+    }
+    .admin-user {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 6px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .admin-user span {
+      flex: 1;
+      font-size: 14px;
     }
     footer {
       margin-top: 40px;
       font-size: 14px;
       color: #777;
+      text-align: center;
+    }
+    form label {
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
   <h2>SSC Result Portal - Chittagong Board</h2>
   <div class="container">
-
     <!-- Registration Form -->
     <div class="form-box" id="registerBox" style="display:none;">
       <h3>User Registration</h3>
       <form id="registerForm">
         <label>Full Name:</label>
         <input type="text" id="fullName" required />
-        
-        <label>Mobile Number (Will be username):</label>
+        <label>Mobile Number (Username):</label>
         <input type="text" id="phone" required />
-        
         <label>Institution:</label>
         <input type="text" id="institute" required />
-        
-        <label>Date of Birth:</label>
+        <label>Date Of Birth:</label>
         <input type="date" id="dob" required />
-        
         <label>Gender:</label>
         <select id="gender" required>
           <option value="" disabled selected>Select Gender</option>
@@ -106,17 +135,13 @@
           <option value="Female">Female</option>
           <option value="Other">Other</option>
         </select>
-        
         <label>Password:</label>
         <input type="password" id="regPassword" required />
-        
         <label>Confirm Password:</label>
-        <input type="password" id="confirmPassword" required />
-        
+        <input type="password" id="regConfirmPassword" required />
         <input type="submit" value="Register" />
-        <div style="margin-top:10px;">
-          Already registered? 
-          <span class="toggle-link" onclick="showLogin()">Login here</span>
+        <div style="margin-top: 10px; text-align: center;">
+          Already registered? <span class="toggle-link" onclick="showLogin()">Login here</span>
         </div>
       </form>
     </div>
@@ -125,37 +150,70 @@
     <div class="form-box" id="loginBox">
       <h3>User Login</h3>
       <form id="loginForm">
-        <label>Mobile Number (Username):</label>
+        <label>Username (Mobile Number):</label>
         <input type="text" id="loginUsername" required />
-        
         <label>Password:</label>
         <input type="password" id="loginPassword" required />
-        
         <input type="submit" value="Login" />
-        <div style="margin-top:10px;">
-          New user? 
-          <span class="toggle-link" onclick="showRegister()">Register here</span>
+        <div style="margin-top: 10px; text-align: center;">
+          New user? <span class="toggle-link" onclick="showRegister()">Register here</span>
         </div>
       </form>
     </div>
 
-    <!-- User info & Result Section -->
+    <!-- Result & Admin Section -->
     <div id="resultSection" style="display:none;">
       <div class="user-info" id="userInfo"></div>
+
+      <div id="adminControls">
+        <button onclick="toggleUserList()">Show Registered Users</button>
+        <button onclick="exportToExcel()">Download as Excel</button>
+      </div>
+
+      <div id="adminList"></div>
+
       <button onclick="logout()">Logout</button>
 
-      <!-- Add any user dashboard content here -->
-      <p>Welcome to your dashboard!</p>
-    </div>
+      <!-- SSC Result Check Forms -->
+      <div style="margin-top: 20px; text-align: left;">
+        <h3>Check SSC Result</h3>
 
+        <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" method="post" target="_blank" style="margin-bottom: 15px;">
+          <label>SSC Roll 2025:</label>
+          <input type="text" name="roll" required />
+          <input type="submit" value="Check Result" />
+        </form>
+
+        <form action="https://sresult.bise-ctg.gov.bd/s24/individual/result.php" method="post" target="_blank" style="margin-bottom: 15px;">
+          <label>SSC Roll 2024:</label>
+          <input type="text" name="roll" required />
+          <input type="submit" value="Check Result" />
+        </form>
+
+        <form action="https://sresult.bise-ctg.gov.bd/s2023/individual/result.php" method="post" target="_blank" style="margin-bottom: 15px;">
+          <label>SSC Roll 2023:</label>
+          <input type="text" name="roll" required />
+          <input type="submit" value="Check Result" />
+        </form>
+
+        <form action="https://sresult.bise-ctg.gov.bd/s22/individual/result.php" method="post" target="_blank" style="margin-bottom: 15px;">
+          <label>SSC Roll 2022:</label>
+          <input type="text" name="roll" required />
+          <input type="submit" value="Check Result" />
+        </form>
+
+        <form action="https://sresult.bise-ctg.gov.bd/individual/result.php" method="post" target="_blank" style="margin-bottom: 15px;">
+          <label>SSC Roll 2021:</label>
+          <input type="text" name="roll" required />
+          <input type="submit" value="Check Result" />
+        </form>
+      </div>
+    </div>
   </div>
-  
+
   <footer>© 2025 Abdullah Al Kawser</footer>
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
       authDomain: "sscresult-b774b.firebaseapp.com",
@@ -166,30 +224,31 @@
       appId: "1:386108440083:web:9f8811ef165282269549e6",
       measurementId: "G-GGZ9Q2489E"
     };
-    
+
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Show register form
     function showRegister() {
       document.getElementById("loginBox").style.display = "none";
       document.getElementById("registerBox").style.display = "block";
     }
-    // Show login form
     function showLogin() {
       document.getElementById("registerBox").style.display = "none";
       document.getElementById("loginBox").style.display = "block";
     }
-
-    // Logout
     function logout() {
       document.getElementById("resultSection").style.display = "none";
       document.getElementById("loginBox").style.display = "block";
+      document.getElementById("adminControls").style.display = "none";
+      document.getElementById("adminList").style.display = "none";
       document.getElementById("userInfo").innerHTML = "";
+      document.getElementById("loginUsername").value = "";
+      document.getElementById("loginPassword").value = "";
     }
 
-    // Registration form submit
-    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    // Registration
+    document.getElementById("registerForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
       const fullName = document.getElementById("fullName").value.trim();
@@ -198,62 +257,152 @@
       const dob = document.getElementById("dob").value;
       const gender = document.getElementById("gender").value;
       const password = document.getElementById("regPassword").value;
-      const confirmPassword = document.getElementById("confirmPassword").value;
+      const confirmPassword = document.getElementById("regConfirmPassword").value;
 
-      if(password !== confirmPassword){
+      if(password !== confirmPassword) {
         alert("Password and Confirm Password do not match!");
         return;
       }
 
-      // Check if user already exists with this phone
-      const userSnapshot = await db.collection("users").where("phone", "==", phone).get();
-      if(!userSnapshot.empty){
-        alert("User with this mobile number already exists!");
+      // Check if username (phone) already exists
+      const existsSnapshot = await db.collection("users").where("username", "==", phone).get();
+      if(!existsSnapshot.empty){
+        alert("This Mobile Number is already registered!");
         return;
       }
 
-      // Save user data
+      // Save user
       await db.collection("users").add({
-        fullName,
-        phone,
-        institute,
-        dob,
-        gender,
-        password
+        username: phone,
+        password: password,
+        fullName: fullName,
+        phone: phone,
+        institute: institute,
+        dob: dob,
+        gender: gender,
+        registrationDate: new Date().toISOString()
       });
 
-      alert("Registration successful. Please login.");
+      alert("Registration successful! Please login.");
       showLogin();
     });
 
-    // Login form submit
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    // Admin user data cache for Excel export
+    let adminUserData = [];
 
-      const username = document.getElementById("loginUsername").value.trim();
-      const password = document.getElementById("loginPassword").value.trim();
+    // Load all users for admin view
+    async function loadUsersForAdmin() {
+      const snapshot = await db.collection("users").orderBy("registrationDate", "desc").get();
+      const adminList = document.getElementById("adminList");
+      adminList.innerHTML = "<h4>All Registered Users</h4>";
+      adminUserData = [];
 
-      // Admin login
-      if(username === "abdullah" && password === "6162636465"){
-        window.location.href = "admin.html"; // Redirect to admin page
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        adminUserData.push({
+          Username: data.username,
+          FullName: data.fullName,
+          Phone: data.phone,
+          Institute: data.institute,
+          DOB: data.dob,
+          Gender: data.gender,
+          Password: data.password,
+          RegistrationDate: data.registrationDate ? new Date(data.registrationDate).toLocaleString() : '',
+          LastLogin: data.lastLogin ? new Date(data.lastLogin).toLocaleString() : ''
+        });
+
+        const div = document.createElement("div");
+        div.className = "admin-user";
+        div.innerHTML = `
+          <span>
+            <strong>${data.fullName}</strong> (${data.username})<br />
+            Phone: ${data.phone}<br />
+            Institute: ${data.institute}<br />
+            DOB: ${data.dob}<br />
+            Gender: ${data.gender}<br />
+            Password: ${data.password}<br />
+            Registered: ${data.registrationDate ? new Date(data.registrationDate).toLocaleString() : ''}<br />
+            Last Login: ${data.lastLogin ? new Date(data.lastLogin).toLocaleString() : 'N/A'}
+          </span>
+          <button onclick="deleteUser('${doc.id}')">Delete</button>
+        `;
+        adminList.appendChild(div);
+      });
+    }
+
+    // Delete user
+    async function deleteUser(id) {
+      if(confirm("Are you sure you want to delete this user?")) {
+        await db.collection("users").doc(id).delete();
+        alert("User deleted");
+        loadUsersForAdmin();
+      }
+    }
+
+    // Toggle admin user list visibility
+    function toggleUserList() {
+      const adminList = document.getElementById("adminList");
+      if(adminList.style.display === "none" || adminList.style.display === "") {
+        adminList.style.display = "block";
+      } else {
+        adminList.style.display = "none";
+      }
+    }
+
+    // Export to Excel
+    function exportToExcel() {
+      if(adminUserData.length === 0){
+        alert("No user data to export!");
         return;
       }
+      const ws = XLSX.utils.json_to_sheet(adminUserData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Users");
+      XLSX.writeFile(wb, "Registered_Users.xlsx");
+    }
 
-      // User login
-      const snapshot = await db.collection("users")
-        .where("phone", "==", username)
-        .where("password", "==", password)
-        .get();
+    // Login
+    document.getElementById("loginForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value;
 
-      if(!snapshot.empty){
-        const user = snapshot.docs[0].data();
-        document.getElementById("userInfo").innerHTML = `<p><strong>Welcome, ${user.fullName}</strong></p>`;
+      // Admin login
+      if(username === "abdullah" && password === "6162636465") {
+        document.getElementById("userInfo").innerHTML = "<p><strong>Welcome, Admin</strong></p>";
         document.getElementById("loginBox").style.display = "none";
         document.getElementById("registerBox").style.display = "none";
         document.getElementById("resultSection").style.display = "block";
-      } else {
-        alert("Invalid login credentials");
+        document.getElementById("adminControls").style.display = "block";
+        loadUsersForAdmin();
+        return;
       }
+
+      // Normal user login
+      const snapshot = await db.collection("users")
+        .where("username", "==", username)
+        .where("password", "==", password)
+        .get();
+
+      if(snapshot.empty) {
+        alert("Invalid login credentials");
+        return;
+      }
+
+      const userDoc = snapshot.docs[0];
+      const user = userDoc.data();
+
+      // Update last login timestamp
+      await db.collection("users").doc(userDoc.id).update({
+        lastLogin: new Date().toISOString()
+      });
+
+      document.getElementById("userInfo").innerHTML = `<p><strong>Welcome, ${user.fullName}</strong></p>`;
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("registerBox").style.display = "none";
+      document.getElementById("resultSection").style.display = "block";
+      document.getElementById("adminControls").style.display = "none";
+      document.getElementById("adminList").style.display = "none";
     });
   </script>
 </body>
