@@ -8,83 +8,63 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; background:#eef7f7; padding:30px; text-align:center; }
+    input { padding:8px; width:200px; margin:0 5px; }
+    button { padding:8px 12px; margin:5px; background:#00796b;color:#fff;border:none;cursor:pointer; }
     table { width:100%; border-collapse:collapse; margin-top:20px; background:#fff; }
     th, td { border:1px solid #ddd; padding:8px; }
     th { background:#00796b; color:#fff; }
-    input { padding:8px; width:200px; margin:0 5px;}
-    button { padding:8px 12px; margin:5px; background:#00796b;color:#fff;border:none;cursor:pointer; }
-    button:hover { background:#004d40; }
   </style>
 </head>
 <body>
   <h2>Admin Dashboard</h2>
-  <input type="text" id="search" placeholder="Search"><button onclick="filter()">Search</button>
-  <button onclick="download()">Download Excel</button>
-  <button onclick="logout()">Logout</button>
+  <input type="text" id="search" placeholder="Search..."><button onclick="filter()">Search</button>
+  <button onclick="download()">Download Excel</button><button onclick="logout()">Logout</button>
   <table id="tbl"><thead><tr><th>Username</th><th>Full Name</th><th>Phone</th><th>Institute</th><th>DOB</th><th>Gender</th><th>Actions</th></tr></thead><tbody></tbody></table>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
-      authDomain: "sscresult-b774b.firebaseapp.com",
-      projectId: "sscresult-b774b"
-    };
-    firebase.initializeApp(firebaseConfig);
+    const fb = { apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8", authDomain: "sscresult-b774b.firebaseapp.com", projectId: "sscresult-b774b" };
+    firebase.initializeApp(fb);
     const db = firebase.firestore();
 
-    const role = sessionStorage.getItem("userRole");
-    if (role !== "admin") location.href = "index.html";
-
-    let all = [];
-    db.collection("users").get().then(snap => {
-      snap.forEach(doc => {
-        const u = { id: doc.id, ...doc.data() };
+    if (sessionStorage.getItem("role")!=="admin") return location.href="index.html";
+    let all=[]; db.collection("users").get().then(snap=>{
+      snap.forEach(doc=>{
+        const u={id:doc.id,...doc.data()};
         all.push(u);
-        append(u);
+        addRow(u);
       });
     });
 
-    function append(u){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${u.username}</td><td>${u.fullName}</td><td>${u.phone}</td><td>${u.institute}</td><td>${u.dob}</td><td>${u.gender}</td>
+    function addRow(u){
+      const row=document.createElement("tr");
+      row.innerHTML=`<td>${u.username}</td><td>${u.fullName}</td><td>${u.phone}</td><td>${u.institute}</td><td>${u.dob}</td><td>${u.gender}</td>
         <td><button onclick="del('${u.id}')">Delete</button><button onclick="edit('${u.id}')">Edit</button></td>`;
-      document.querySelector("#tbl tbody").appendChild(tr);
+      document.querySelector("#tbl tbody").appendChild(row);
     }
-
-    function filter(){
-      const term = document.getElementById("search").value.toLowerCase();
-      document.querySelectorAll("#tbl tbody tr").forEach(tr => {
-        tr.style.display = tr.innerText.toLowerCase().includes(term) ? "" : "none";
+    function filter() {
+      const term=document.getElementById("search").value.toLowerCase();
+      document.querySelectorAll("#tbl tbody tr").forEach(tr=>{
+        tr.style.display=tr.innerText.toLowerCase().includes(term)?"":"none";
       });
     }
-
     function del(id){
-      if (!confirm("Confirm delete?")) return;
-      db.collection("users").doc(id).delete().then(()=>location.reload());
+      if(confirm("Delete?")) db.collection("users").doc(id).delete().then(()=>location.reload());
     }
-
     function edit(id){
-      const f = all.find(u=>u.id===id);
-      const fn = prompt("Full Name:", f.fullName);
-      if (fn===null) return;
-      const ph = prompt("Phone:", f.phone);
-      const inst = prompt("Institute:", f.institute);
-      const dob = prompt("DOB:", f.dob);
-      const g = prompt("Gender:", f.gender);
-      const pwd = prompt("Password:", f.password);
-      db.collection("users").doc(id).update({ fullName: fn, phone: ph, institute: inst, dob, gender: g, password: pwd }).then(()=>location.reload());
+      const u=all.find(x=>x.id===id);
+      if(!u) return;
+      const fn=prompt("Full Name:",u.fullName),ph=prompt("Phone:",u.phone);
+      const inst=prompt("Institute:",u.institute),dob=prompt("DOB:",u.dob),g=prompt("Gender:",u.gender),pwd=prompt("Password:",u.password);
+      db.collection("users").doc(id).update({fullName:fn,phone:ph,institute:inst,dob,gender:g,password:pwd}).then(()=>location.reload());
     }
-
     function download(){
-      const data = all.map(u=>{ const {id, ...rest} = u; return rest; });
-      const ws = XLSX.utils.json_to_sheet(data), wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Users");
-      XLSX.writeFile(wb, "users.xlsx");
+      const data=all.map(u=>{const{ id,...r }=u;return r;});
+      const ws=XLSX.utils.json_to_sheet(data), wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,"Users");XLSX.writeFile(wb,"users.xlsx");
     }
-
     function logout(){
-      sessionStorage.clear(); location.href="index.html";
+      sessionStorage.clear();
+      location.href="index.html";
     }
   </script>
 </body>
