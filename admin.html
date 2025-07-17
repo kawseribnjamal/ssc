@@ -13,6 +13,7 @@
     #adminTable th { background: #e3e3e3; }
     .hidden { display: none; }
     button { padding: 5px 10px; margin: 2px; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
@@ -24,7 +25,10 @@
   </div>
 
   <div id="dashboard" class="hidden">
-    <h2>📋 All Registered Users</h2>
+    <div class="top-bar">
+      <h2>📋 All Registered Users</h2>
+      <button onclick="adminLogout()">🚪 Logout</button>
+    </div>
     <button onclick="downloadExcel()">📥 Download Excel</button>
     <table id="adminTable">
       <thead>
@@ -54,16 +58,24 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    async function adminLogin() {
+    function adminLogin() {
       const user = document.getElementById("adminUser").value.trim();
       const pass = document.getElementById("adminPass").value.trim();
-      if(user === "abdullah" && pass === "6162636465") {
+      if (user === "abdullah" && pass === "6162636465") {
         document.getElementById("loginDiv").classList.add("hidden");
         document.getElementById("dashboard").classList.remove("hidden");
         loadUsers();
       } else {
         alert("Invalid admin credentials");
       }
+    }
+
+    function adminLogout() {
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("loginDiv").classList.remove("hidden");
+      // Clear input fields
+      document.getElementById("adminUser").value = "";
+      document.getElementById("adminPass").value = "";
     }
 
     async function loadUsers() {
@@ -94,7 +106,7 @@
     }
 
     async function deleteUser(id) {
-      if(confirm("Are you sure?")) {
+      if (confirm("Are you sure?")) {
         await db.collection("users").doc(id).delete();
         loadUsers();
       }
@@ -102,7 +114,7 @@
 
     function downloadExcel() {
       const table = document.getElementById("adminTable");
-      const wb = XLSX.utils.table_to_book(table, {sheet:"Users"});
+      const wb = XLSX.utils.table_to_book(table, { sheet: "Users" });
       XLSX.writeFile(wb, "All_Users.xlsx");
     }
   </script>
