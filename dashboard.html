@@ -1,52 +1,129 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>User Dashboard</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { text-align:center; font-family:Arial,sans-serif; padding:20px; background: #e0f7fa;}
-    .container { max-width:500px; margin:auto; background:white; padding:20px; border-radius:8px;}
-    input, button { width: 95%; padding:10px; margin:10px 0; border-radius:6px; border:1px solid #ccc;}
-    button { background:#4db6ac; color:white; cursor:pointer;}
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    .welcome {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 20px;
+      color: #555;
+    }
+
+    .results {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    button {
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .logout {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .logout button {
+      background-color: #dc3545;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2 id="welcome">Welcome!</h2>
-    <button onclick="logout()">Logout</button>
-    <h3>Check Your SSC Results</h3>
-    <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" method="post" target="_blank">
-      <input type="text" name="roll" placeholder="SSC Roll 2025" required><button type="submit">Check 2025</button>
-    </form>
-    <form action="https://sresult.bise-ctg.gov.bd/s24/individual/result.php" method="post" target="_blank">
-      <input type="text" name="roll" placeholder="SSC Roll 2024" required><button type="submit">Check 2024</button>
-    </form>
-    <form action="https://sresult.bise-ctg.gov.bd/s2023/individual/result.php" method="post" target="_blank">
-      <input type="text" name="roll" placeholder="SSC Roll 2023" required><button type="submit">Check 2023</button>
-    </form>
-    <form action="https://sresult.bise-ctg.gov.bd/s22/individual/result.php" method="post" target="_blank">
-      <input type="text" name="roll" placeholder="SSC Roll 2022" required><button type="submit">Check 2022</button>
-    </form>
-    <form action="https://sresult.bise-ctg.gov.bd/individual/result.php" method="post" target="_blank">
-      <input type="text" name="roll" placeholder="SSC Roll 2021" required><button type="submit">Check 2021</button>
-    </form>
-  </div>
-  <script>
-    const firebaseConfig = { apiKey:"...", authDomain:"...", projectId:"sscresult-b774b" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    <h2>📋 Dashboard</h2>
+    <div class="welcome" id="welcomeText">Welcome!</div>
 
-    const params = new URLSearchParams(window.location.search);
-    const uid = params.get('userId');
-    db.collection('users').doc(uid).get().then(doc => {
-      if (!doc.exists) return window.location.href='index.html';
-      const u = doc.data();
-      document.getElementById('welcome').innerText = `Welcome, ${u.fullName}!`;
+    <div class="results">
+      <button onclick="checkResult('2024')">Check Result 2024</button>
+      <button onclick="checkResult('2023')">Check Result 2023</button>
+      <button onclick="checkResult('2022')">Check Result 2022</button>
+      <button onclick="checkResult('2021')">Check Result 2021</button>
+      <button onclick="checkResult('2020')">Check Result 2020</button>
+    </div>
+
+    <div class="logout">
+      <button onclick="logout()">🔓 Logout</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
+      authDomain: "sscresult-b774b.firebaseapp.com",
+      databaseURL: "https://sscresult-b774b-default-rtdb.firebaseio.com",
+      projectId: "sscresult-b774b",
+      storageBucket: "sscresult-b774b.appspot.com",
+      messagingSenderId: "386108440083",
+      appId: "1:386108440083:web:9f8811ef165282269549e6",
+      measurementId: "G-GGZ9Q2489E"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    // Login Check
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        const uid = user.uid;
+        firebase.database().ref('users/' + uid).once('value').then(snapshot => {
+          const data = snapshot.val();
+          if (data && data.name) {
+            document.getElementById('welcomeText').innerText = `👋 Welcome, ${data.name}!`;
+          }
+        });
+      } else {
+        window.location.href = "index.html"; // redirect to login if not logged in
+      }
     });
 
-    function logout(){ window.location.href = 'index.html'; }
+    function checkResult(year) {
+      alert("Result checking for year: " + year + " (coming soon)");
+    }
+
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = "index.html";
+      });
+    }
   </script>
 </body>
 </html>
