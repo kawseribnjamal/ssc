@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SSC Portal – Login/Register</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
     body { font-family: 'Segoe UI', sans-serif; background: #eef7f7; text-align: center; padding: 40px; }
@@ -21,7 +19,7 @@
 
   <div class="box" id="loginBox">
     <h3>Login</h3>
-    <input type="text" id="loginUsername" placeholder="Username or Admin Email" required>
+    <input type="text" id="loginUsername" placeholder="Username or Admin Username" required>
     <input type="password" id="loginPassword" placeholder="Password" required>
     <button onclick="loginUser()">Login</button>
     <div class="toggle" onclick="toggleForm()">New user? Register</div>
@@ -31,13 +29,10 @@
     <h3>Register</h3>
     <input type="text" id="regFullName" placeholder="Full Name" required>
     <input type="text" id="regPhone" placeholder="Mobile Number" required>
-    <input type="text" id="regInstitute" placeholder="Institute" required>
+    <input type="text" id="regInstitute" placeholder="Institution" required>
     <input type="date" id="regDob" required>
     <select id="regGender" required>
-      <option value="">Select Gender</option>
-      <option value="Male">Male</option>
-      <option value="Female">Female</option>
-      <option value="Other">Other</option>
+      <option value="">Gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
     </select>
     <input type="text" id="regUsername" placeholder="Username" required>
     <input type="password" id="regPassword" placeholder="Password" required>
@@ -49,19 +44,15 @@
     const firebaseConfig = {
       apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
       authDomain: "sscresult-b774b.firebaseapp.com",
-      projectId: "sscresult-b774b",
-      storageBucket: "sscresult-b774b.appspot.com",
-      messagingSenderId: "386108440083",
-      appId: "1:386108440083:web:9f8811ef165282269549e6"
+      projectId: "sscresult-b774b"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
 
     const toggleForm = () => {
       document.getElementById('loginBox').style.display = document.getElementById('loginBox').style.display === 'none' ? 'block' : 'none';
       document.getElementById('registerBox').style.display = document.getElementById('registerBox').style.display === 'none' ? 'block' : 'none';
-    }
+    };
 
     async function registerUser() {
       await db.collection("users").add({
@@ -74,25 +65,26 @@
         password: document.getElementById("regPassword").value,
         createdAt: new Date().toISOString()
       });
-      alert("Registration Successful!");
+      alert("Registered! Login now.");
       toggleForm();
     }
 
     async function loginUser() {
-      const u = document.getElementById("loginUsername").value;
-      const p = document.getElementById("loginPassword").value;
+      let u = document.getElementById("loginUsername").value;
+      let p = document.getElementById("loginPassword").value;
 
-      // Admin login
+      // Admin login logic
       if (u === "abdullah" && p === "6162636465") {
-        sessionStorage.setItem("userRole", "admin");
+        sessionStorage.setItem("role", "admin");
         window.location.href = "admin.html";
         return;
       }
 
+      // User login
       const snap = await db.collection("users").where("username", "==", u).where("password", "==", p).get();
       if (!snap.empty) {
         const data = snap.docs[0].data();
-        sessionStorage.setItem("userRole", "user");
+        sessionStorage.setItem("role", "user");
         sessionStorage.setItem("userData", JSON.stringify(data));
         window.location.href = "user-dashboard.html";
       } else {
