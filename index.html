@@ -1,186 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SSC Result Portal - Chittagong Board</title>
-<style>
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(to right, #e3f2fd, #e0f7fa);
-    margin: 0; padding: 20px; text-align: center;
-  }
-  h2 { color: #004d40; }
-  .container {
-    max-width: 450px;
-    margin: auto;
-  }
-  .form-box {
-    background: white;
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  label {
-    display: block; text-align: left;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-  input[type="text"],
-  input[type="password"],
-  input[type="date"] {
-    width: 95%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #f1f8e9;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-  }
-  input[type="submit"], button {
-    padding: 10px 20px;
-    background: #4db6ac;
-    border: none;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  input[type="submit"]:hover, button:hover {
-    background: #00796b;
-  }
-  .toggle-link {
-    color: #00796b;
-    cursor: pointer;
-    text-decoration: underline;
-  }
-  .user-info {
-    text-align: center;
-    background: #f1f8e9;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    font-size: 16px;
-  }
-  footer {
-    margin-top: 40px;
-    font-size: 14px;
-    color: #777;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SSC Portal – Login/Register</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #eef7f7; text-align: center; padding: 40px; }
+    .box { background: #fff; padding: 25px; margin: 20px auto; max-width: 400px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+    input, select { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
+    button { padding: 10px 20px; background: #00796b; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #004d40; }
+    .toggle { color: #00796b; cursor: pointer; text-decoration: underline; margin-top: 10px; }
+  </style>
 </head>
 <body>
-  <h2>SSC Result Portal - Chittagong Board</h2>
-  <div class="container">
-    <div class="form-box" id="registerBox" style="display:none;">
-      <h3>User Registration</h3>
-      <form id="registerForm">
-        <label>Username:</label>
-        <input type="text" id="regUsername" required />
-        <label>Password:</label>
-        <input type="password" id="regPassword" required />
-        <label>Full Name:</label>
-        <input type="text" id="fullName" required />
-        <label>Mobile Number:</label>
-        <input type="text" id="phone" required />
-        <label>Institution:</label>
-        <input type="text" id="institute" required />
-        <label>Date of Birth:</label>
-        <input type="date" id="dob" required />
-        <input type="submit" value="Register" />
-        <div style="margin-top:10px;">
-          Already registered? <span class="toggle-link" onclick="showLogin()">Login here</span>
-        </div>
-      </form>
-    </div>
+  <h2>SSC Result Portal</h2>
 
-    <div class="form-box" id="loginBox">
-      <h3>User Login</h3>
-      <form id="loginForm">
-        <label>Username:</label>
-        <input type="text" id="loginUsername" required />
-        <label>Password:</label>
-        <input type="password" id="loginPassword" required />
-        <input type="submit" value="Login" />
-        <div style="margin-top:10px;">
-          New user? <span class="toggle-link" onclick="showRegister()">Register here</span>
-        </div>
-      </form>
-    </div>
+  <div class="box" id="loginBox">
+    <h3>Login</h3>
+    <input type="text" id="loginUsername" placeholder="Username or Admin Email" required>
+    <input type="password" id="loginPassword" placeholder="Password" required>
+    <button onclick="loginUser()">Login</button>
+    <div class="toggle" onclick="toggleForm()">New user? Register</div>
   </div>
-  <footer>© 2025 Abdullah Al Kawser</footer>
 
-<script>
-  function showRegister() {
-    document.getElementById("loginBox").style.display = "none";
-    document.getElementById("registerBox").style.display = "block";
-  }
-  function showLogin() {
-    document.getElementById("registerBox").style.display = "none";
-    document.getElementById("loginBox").style.display = "block";
-  }
+  <div class="box" id="registerBox" style="display:none;">
+    <h3>Register</h3>
+    <input type="text" id="regFullName" placeholder="Full Name" required>
+    <input type="text" id="regPhone" placeholder="Mobile Number" required>
+    <input type="text" id="regInstitute" placeholder="Institute" required>
+    <input type="date" id="regDob" required>
+    <select id="regGender" required>
+      <option value="">Select Gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Other">Other</option>
+    </select>
+    <input type="text" id="regUsername" placeholder="Username" required>
+    <input type="password" id="regPassword" placeholder="Password" required>
+    <button onclick="registerUser()">Register</button>
+    <div class="toggle" onclick="toggleForm()">Already registered? Login</div>
+  </div>
 
-  // Users stored in localStorage for demo
-  function getUsers() {
-    const users = localStorage.getItem("users");
-    return users ? JSON.parse(users) : [];
-  }
-  function saveUsers(users) {
-    localStorage.setItem("users", JSON.stringify(users));
-  }
-
-  document.getElementById("registerForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const users = getUsers();
-    const username = document.getElementById("regUsername").value.trim();
-    if(users.some(u => u.username === username)){
-      alert("Username already exists.");
-      return;
-    }
-    const user = {
-      username,
-      password: document.getElementById("regPassword").value,
-      fullName: document.getElementById("fullName").value,
-      phone: document.getElementById("phone").value,
-      institute: document.getElementById("institute").value,
-      dob: document.getElementById("dob").value,
-      registrationDate: new Date().toISOString(),
-      lastLogin: null,
-      gender: '' // you can add gender field here if needed
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
+      authDomain: "sscresult-b774b.firebaseapp.com",
+      projectId: "sscresult-b774b",
+      storageBucket: "sscresult-b774b.appspot.com",
+      messagingSenderId: "386108440083",
+      appId: "1:386108440083:web:9f8811ef165282269549e6"
     };
-    users.push(user);
-    saveUsers(users);
-    alert("Registration successful. Please login.");
-    showLogin();
-  });
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  document.getElementById("loginForm").addEventListener("submit", function(e){
-    e.preventDefault();
-    const username = document.getElementById("loginUsername").value.trim();
-    const password = document.getElementById("loginPassword").value;
-    const users = getUsers();
-
-    // Admin credentials hardcoded
-    if(username === "abdullah" && password === "6162636465"){
-      localStorage.setItem("userRole", "admin");
-      window.location.href = "admin.html";
-      return;
+    const toggleForm = () => {
+      document.getElementById('loginBox').style.display = document.getElementById('loginBox').style.display === 'none' ? 'block' : 'none';
+      document.getElementById('registerBox').style.display = document.getElementById('registerBox').style.display === 'none' ? 'block' : 'none';
     }
 
-    const user = users.find(u => u.username === username && u.password === password);
-    if(user){
-      user.lastLogin = new Date().toISOString();
-      saveUsers(users);
-      localStorage.setItem("loggedInUser", JSON.stringify(user));
-      localStorage.setItem("userRole", "user");
-      // No welcome message, direct redirect
-      window.location.href = "user-dashboard.html";
-    } else {
-      alert("Invalid login credentials");
+    async function registerUser() {
+      await db.collection("users").add({
+        fullName: document.getElementById("regFullName").value,
+        phone: document.getElementById("regPhone").value,
+        institute: document.getElementById("regInstitute").value,
+        dob: document.getElementById("regDob").value,
+        gender: document.getElementById("regGender").value,
+        username: document.getElementById("regUsername").value,
+        password: document.getElementById("regPassword").value,
+        createdAt: new Date().toISOString()
+      });
+      alert("Registration Successful!");
+      toggleForm();
     }
-  });
-</script>
+
+    async function loginUser() {
+      const u = document.getElementById("loginUsername").value;
+      const p = document.getElementById("loginPassword").value;
+
+      // Admin login
+      if (u === "abdullah" && p === "6162636465") {
+        sessionStorage.setItem("userRole", "admin");
+        window.location.href = "admin.html";
+        return;
+      }
+
+      const snap = await db.collection("users").where("username", "==", u).where("password", "==", p).get();
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        sessionStorage.setItem("userRole", "user");
+        sessionStorage.setItem("userData", JSON.stringify(data));
+        window.location.href = "user-dashboard.html";
+      } else {
+        alert("Invalid credentials!");
+      }
+    }
+  </script>
 </body>
 </html>
