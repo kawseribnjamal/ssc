@@ -1,464 +1,109 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Dashboard - SSC Result Portal</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f4f8;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #004d40;
-    }
-    #loginSection, #dashboardSection {
-      max-width: 900px;
-      margin: 20px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    label {
-      display: block;
-      margin-top: 10px;
-      font-weight: bold;
-      color: #004d40;
-    }
-    input[type="text"],
-    input[type="password"],
-    select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #00796b;
-      color: white;
-      padding: 10px 20px;
-      margin-top: 15px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #004d40;
-    }
-    #logoutBtn {
-      float: right;
-      background-color: #d32f2f;
-      margin-top: 0;
-    }
-    #logoutBtn:hover {
-      background-color: #9a0007;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      font-size: 14px;
-    }
-    table, th, td {
-      border: 1px solid #ddd;
-    }
-    th, td {
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #004d40;
-      color: white;
-    }
-    .action-btn {
-      background-color: #0288d1;
-      margin-right: 5px;
-      padding: 5px 8px;
-      font-size: 13px;
-      border-radius: 4px;
-    }
-    .action-btn.delete {
-      background-color: #d32f2f;
-    }
-    .action-btn:hover {
-      opacity: 0.85;
-    }
-    #searchInput {
-      width: 300px;
-      padding: 8px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    #noData {
-      margin-top: 20px;
-      font-style: italic;
-      color: #777;
-    }
-    /* Modal styles for edit user */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 999;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.5);
-    }
-    .modal-content {
-      background-color: white;
-      margin: 10% auto;
-      padding: 20px;
-      border-radius: 10px;
-      width: 400px;
-      position: relative;
-    }
-    .close-btn {
-      position: absolute;
-      right: 15px;
-      top: 10px;
-      font-size: 20px;
-      font-weight: bold;
-      color: #888;
-      cursor: pointer;
-    }
-    .close-btn:hover {
-      color: #444;
-    }
+    body { font-family: Arial; background: #f9f9f9; padding: 20px; }
+    #adminTable { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    #adminTable th, #adminTable td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    #adminTable th { background: #e3e3e3; }
+    .hidden { display: none; }
+    button { padding: 5px 10px; margin: 2px; }
   </style>
 </head>
 <body>
-  <h1>Admin Dashboard - SSC Result Portal</h1>
-
-  <!-- Login Section -->
-  <div id="loginSection">
-    <form id="loginForm">
-      <label for="adminUsername">Username:</label>
-      <input type="text" id="adminUsername" required autocomplete="off" />
-
-      <label for="adminPassword">Password:</label>
-      <input type="password" id="adminPassword" required autocomplete="off" />
-
-      <button type="submit">Login</button>
-    </form>
+  <h2>🔐 Admin Login</h2>
+  <div id="loginDiv">
+    <input type="text" id="adminUser" placeholder="Username"><br><br>
+    <input type="password" id="adminPass" placeholder="Password"><br><br>
+    <button onclick="adminLogin()">Login</button>
   </div>
 
-  <!-- Dashboard Section -->
-  <div id="dashboardSection" style="display:none;">
-    <button id="logoutBtn">Logout</button>
-
-    <input type="text" id="searchInput" placeholder="Search by Name or Mobile Number..." />
-
-    <button onclick="exportToExcel()">Export to Excel</button>
-
-    <div id="noData" style="display:none;">No users found.</div>
-
-    <table id="usersTable" style="display:none;">
+  <div id="dashboard" class="hidden">
+    <h2>📋 All Registered Users</h2>
+    <button onclick="downloadExcel()">📥 Download Excel</button>
+    <table id="adminTable">
       <thead>
         <tr>
-          <th>Full Name</th>
-          <th>Mobile Number</th>
-          <th>Password</th>
+          <th>Name</th>
+          <th>Mobile</th>
           <th>Institution</th>
           <th>DOB</th>
           <th>Gender</th>
-          <th>Registration Date</th>
+          <th>Password</th>
+          <th>Registered</th>
           <th>Last Login</th>
-          <th>Actions</th>
+          <th>✏️</th>
+          <th>❌</th>
         </tr>
       </thead>
-      <tbody id="usersTableBody"></tbody>
+      <tbody id="userTableBody"></tbody>
     </table>
   </div>
 
-  <!-- Edit User Modal -->
-  <div id="editModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn" id="closeEditModal">&times;</span>
-      <h3>Edit User</h3>
-      <form id="editUserForm">
-        <label for="editFullName">Full Name:</label>
-        <input type="text" id="editFullName" required />
-
-        <label for="editPhone">Mobile Number:</label>
-        <input type="text" id="editPhone" required />
-
-        <label for="editPassword">Password:</label>
-        <input type="text" id="editPassword" required />
-
-        <label for="editInstitute">Institution:</label>
-        <input type="text" id="editInstitute" required />
-
-        <label for="editDOB">Date of Birth:</label>
-        <input type="date" id="editDOB" required />
-
-        <label for="editGender">Gender:</label>
-        <select id="editGender" required>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
-
-        <button type="submit" style="margin-top: 15px;">Save Changes</button>
-      </form>
-    </div>
-  </div>
-
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
       authDomain: "sscresult-b774b.firebaseapp.com",
-      databaseURL: "https://sscresult-b774b-default-rtdb.firebaseio.com",
       projectId: "sscresult-b774b",
-      storageBucket: "sscresult-b774b.appspot.com",
-      messagingSenderId: "386108440083",
-      appId: "1:386108440083:web:9f8811ef165282269549e6",
-      measurementId: "G-GGZ9Q2489E"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Admin credentials
-    const ADMIN_USERNAME = "abdullah";
-    const ADMIN_PASSWORD = "6162636465";
-
-    // Elements
-    const loginSection = document.getElementById('loginSection');
-    const dashboardSection = document.getElementById('dashboardSection');
-    const loginForm = document.getElementById('loginForm');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const searchInput = document.getElementById('searchInput');
-    const usersTable = document.getElementById('usersTable');
-    const usersTableBody = document.getElementById('usersTableBody');
-    const noData = document.getElementById('noData');
-
-    // Edit modal elements
-    const editModal = document.getElementById('editModal');
-    const closeEditModalBtn = document.getElementById('closeEditModal');
-    const editUserForm = document.getElementById('editUserForm');
-    let editUserId = null;
-
-    // Session check
-    window.onload = () => {
-      if (sessionStorage.getItem('adminLoggedIn') === "true") {
-        showDashboard();
-      }
-    };
-
-    // Login form submit
-    loginForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const username = document.getElementById('adminUsername').value.trim();
-      const password = document.getElementById('adminPassword').value.trim();
-
-      if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-        sessionStorage.setItem('adminLoggedIn', "true");
-        showDashboard();
+    async function adminLogin() {
+      const user = document.getElementById("adminUser").value.trim();
+      const pass = document.getElementById("adminPass").value.trim();
+      if(user === "abdullah" && pass === "6162636465") {
+        document.getElementById("loginDiv").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        loadUsers();
       } else {
-        alert('Invalid admin credentials!');
+        alert("Invalid admin credentials");
       }
-    });
-
-    function showDashboard() {
-      loginSection.style.display = 'none';
-      dashboardSection.style.display = 'block';
-      loadUsers();
     }
 
-    // Logout
-    logoutBtn.addEventListener('click', () => {
-      sessionStorage.removeItem('adminLoggedIn');
-      dashboardSection.style.display = 'none';
-      loginSection.style.display = 'block';
-      loginForm.reset();
-      clearTable();
-    });
-
-    // Load users from firestore
     async function loadUsers() {
-      usersTableBody.innerHTML = '';
-      usersTable.style.display = 'none';
-      noData.style.display = 'none';
-
-      const snapshot = await db.collection('users').orderBy('fullName').get();
-
-      if (snapshot.empty) {
-        noData.style.display = 'block';
-        return;
-      }
-
-      window.usersData = []; // for export & search
-
+      const snapshot = await db.collection("users").get();
+      const tbody = document.getElementById("userTableBody");
+      tbody.innerHTML = "";
       snapshot.forEach(doc => {
         const user = doc.data();
-        user.id = doc.id;
-
-        // Firestore timestamps may need conversion
-        const regDate = user.registrationDate ? user.registrationDate.toDate() : null;
-        const lastLogin = user.lastLoginDate ? user.lastLoginDate.toDate() : null;
-
-        window.usersData.push({
-          id: user.id,
-          fullName: user.fullName || '',
-          phone: user.phone || '',
-          password: user.password || '',
-          institute: user.institute || '',
-          dob: user.dob || '',
-          gender: user.gender || '',
-          registrationDate: regDate ? regDate.toLocaleString() : '',
-          lastLoginDate: lastLogin ? lastLogin.toLocaleString() : ''
-        });
-      });
-
-      displayUsers(window.usersData);
-    }
-
-    // Display users in table
-    function displayUsers(users) {
-      usersTableBody.innerHTML = '';
-      if (users.length === 0) {
-        usersTable.style.display = 'none';
-        noData.style.display = 'block';
-        return;
-      }
-
-      noData.style.display = 'none';
-      usersTable.style.display = 'table';
-
-      users.forEach(user => {
-        const tr = document.createElement('tr');
+        const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${escapeHtml(user.fullName)}</td>
-          <td>${escapeHtml(user.phone)}</td>
-          <td>${escapeHtml(user.password)}</td>
-          <td>${escapeHtml(user.institute)}</td>
-          <td>${escapeHtml(user.dob)}</td>
-          <td>${escapeHtml(user.gender)}</td>
-          <td>${escapeHtml(user.registrationDate)}</td>
-          <td>${escapeHtml(user.lastLoginDate)}</td>
-          <td>
-            <button class="action-btn" onclick="openEditModal('${user.id}')">Edit</button>
-            <button class="action-btn delete" onclick="deleteUser('${user.id}')">Delete</button>
-          </td>
+          <td contenteditable onblur="updateField('${doc.id}', 'fullName', this.innerText)">${user.fullName}</td>
+          <td>${user.username}</td>
+          <td contenteditable onblur="updateField('${doc.id}', 'institution', this.innerText)">${user.institution}</td>
+          <td contenteditable onblur="updateField('${doc.id}', 'dob', this.innerText)">${user.dob}</td>
+          <td contenteditable onblur="updateField('${doc.id}', 'gender', this.innerText)">${user.gender}</td>
+          <td contenteditable onblur="updateField('${doc.id}', 'password', this.innerText)">${user.password}</td>
+          <td>${user.registeredAt || "N/A"}</td>
+          <td>${user.lastLogin || "N/A"}</td>
+          <td><button onclick="editUser('${doc.id}')">Save</button></td>
+          <td><button onclick="deleteUser('${doc.id}')">Delete</button></td>
         `;
-        usersTableBody.appendChild(tr);
+        tbody.appendChild(tr);
       });
     }
 
-    // Escape HTML (simple)
-    function escapeHtml(text) {
-      if (!text) return '';
-      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    function updateField(id, field, value) {
+      db.collection("users").doc(id).update({ [field]: value });
     }
 
-    // Search functionality
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
-      if (!q) {
-        displayUsers(window.usersData);
-        return;
-      }
-      const filtered = window.usersData.filter(user => {
-        return (
-          user.fullName.toLowerCase().includes(q) ||
-          user.phone.toLowerCase().includes(q)
-        );
-      });
-      displayUsers(filtered);
-    });
-
-    // Delete user
     async function deleteUser(id) {
-      if (confirm('Are you sure you want to delete this user?')) {
-        await db.collection('users').doc(id).delete();
-        alert('User deleted');
+      if(confirm("Are you sure?")) {
+        await db.collection("users").doc(id).delete();
         loadUsers();
       }
     }
 
-    // Edit user modal
-    function openEditModal(id) {
-      editUserId = id;
-      const user = window.usersData.find(u => u.id === id);
-      if (!user) return alert('User data not found!');
-
-      document.getElementById('editFullName').value = user.fullName;
-      document.getElementById('editPhone').value = user.phone;
-      document.getElementById('editPassword').value = user.password;
-      document.getElementById('editInstitute').value = user.institute;
-      document.getElementById('editDOB').value = user.dob;
-      document.getElementById('editGender').value = user.gender;
-
-      editModal.style.display = 'block';
-    }
-
-    closeEditModalBtn.addEventListener('click', () => {
-      editModal.style.display = 'none';
-    });
-
-    window.onclick = function(event) {
-      if (event.target == editModal) {
-        editModal.style.display = 'none';
-      }
-    };
-
-    editUserForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      if (!editUserId) return;
-
-      const updatedData = {
-        fullName: document.getElementById('editFullName').value.trim(),
-        phone: document.getElementById('editPhone').value.trim(),
-        password: document.getElementById('editPassword').value.trim(),
-        institute: document.getElementById('editInstitute').value.trim(),
-        dob: document.getElementById('editDOB').value,
-        gender: document.getElementById('editGender').value
-      };
-
-      try {
-        await db.collection('users').doc(editUserId).update(updatedData);
-        alert('User info updated successfully');
-        editModal.style.display = 'none';
-        loadUsers();
-      } catch (err) {
-        alert('Error updating user info: ' + err.message);
-      }
-    });
-
-    // Export to Excel
-    function exportToExcel() {
-      if (!window.usersData || window.usersData.length === 0) {
-        alert('No users to export!');
-        return;
-      }
-
-      // Map to sheet format with nice headings
-      const exportData = window.usersData.map(user => ({
-        "Full Name": user.fullName,
-        "Mobile Number": user.phone,
-        "Password": user.password,
-        "Institution": user.institute,
-        "Date of Birth": user.dob,
-        "Gender": user.gender,
-        "Registration Date": user.registrationDate,
-        "Last Login": user.lastLoginDate
-      }));
-
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Users");
-      XLSX.writeFile(wb, "Registered_Users.xlsx");
+    function downloadExcel() {
+      const table = document.getElementById("adminTable");
+      const wb = XLSX.utils.table_to_book(table, {sheet:"Users"});
+      XLSX.writeFile(wb, "All_Users.xlsx");
     }
   </script>
 </body>
