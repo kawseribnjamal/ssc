@@ -1,201 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Admin Panel - SSC Result Portal</title>
-<style>
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    background: linear-gradient(to right, #e3f2fd, #e0f7fa);
-    margin: 0; padding: 20px;
-  }
-  h2 {
-    color: #004d40;
-    text-align: center;
-  }
-  .container {
-    max-width: 900px;
-    margin: auto;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  input[type="text"], input[type="password"], input[type="date"] {
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    margin-bottom: 10px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  button {
-    padding: 10px 15px;
-    background: #4db6ac;
-    border: none;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-right: 10px;
-  }
-  button:hover {
-    background: #00796b;
-  }
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 20px;
-  }
-  th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: left;
-  }
-  th {
-    background: #00796b;
-    color: white;
-  }
-  .search-box {
-    margin-bottom: 20px;
-  }
-  .logout-btn {
-    background: #616161;
-  }
-</style>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background:#eef7f7; padding:30px; text-align:center; }
+    table { width:100%; border-collapse:collapse; margin-top:20px; background:#fff; }
+    th, td { border:1px solid #ddd; padding:8px; }
+    th { background:#00796b; color:#fff; }
+    input { padding:8px; width:200px; margin:0 5px;}
+    button { padding:8px 12px; margin:5px; background:#00796b;color:#fff;border:none;cursor:pointer; }
+    button:hover { background:#004d40; }
+  </style>
 </head>
 <body>
-<h2>Admin Dashboard</h2>
-<div class="container">
-  <button class="logout-btn" onclick="logout()">Logout</button>
+  <h2>Admin Dashboard</h2>
+  <input type="text" id="search" placeholder="Search"><button onclick="filter()">Search</button>
+  <button onclick="download()">Download Excel</button>
+  <button onclick="logout()">Logout</button>
+  <table id="tbl"><thead><tr><th>Username</th><th>Full Name</th><th>Phone</th><th>Institute</th><th>DOB</th><th>Gender</th><th>Actions</th></tr></thead><tbody></tbody></table>
 
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Search by username or phone" />
-    <button onclick="searchUsers()">Search</button>
-    <button onclick="resetSearch()">Reset</button>
-    <button onclick="exportToExcel()">Download Excel</button>
-  </div>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
+      authDomain: "sscresult-b774b.firebaseapp.com",
+      projectId: "sscresult-b774b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  <table id="usersTable">
-    <thead>
-      <tr>
-        <th>Username</th>
-        <th>Full Name</th>
-        <th>Mobile</th>
-        <th>Institution</th>
-        <th>DOB</th>
-        <th>Gender</th>
-        <th>Registration Date</th>
-        <th>Last Login</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="usersTableBody">
-      <!-- User rows here -->
-    </tbody>
-  </table>
-</div>
+    const role = sessionStorage.getItem("userRole");
+    if (role !== "admin") location.href = "index.html";
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
-  // Admin credentials hardcoded
-  const adminUsername = "abdullah";
-  const adminPassword = "6162636465";
+    let all = [];
+    db.collection("users").get().then(snap => {
+      snap.forEach(doc => {
+        const u = { id: doc.id, ...doc.data() };
+        all.push(u);
+        append(u);
+      });
+    });
 
-  // Check admin login status
-  const userRole = localStorage.getItem("userRole");
-  const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
-
-  if(userRole !== "admin"){
-    alert("Access denied! Please login as admin.");
-    window.location.href = "index.html";
-  }
-
-  let users = JSON.parse(localStorage.getItem("users")) || [];
-
-  function renderTable(usersList){
-    const tbody = document.getElementById("usersTableBody");
-    tbody.innerHTML = "";
-    usersList.forEach((user, index) => {
+    function append(u){
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${user.username}</td>
-        <td><input type="text" value="${user.fullName}" onchange="updateUser(${index}, 'fullName', this.value)" /></td>
-        <td><input type="text" value="${user.phone}" onchange="updateUser(${index}, 'phone', this.value)" /></td>
-        <td><input type="text" value="${user.institute}" onchange="updateUser(${index}, 'institute', this.value)" /></td>
-        <td><input type="date" value="${user.dob}" onchange="updateUser(${index}, 'dob', this.value)" /></td>
-        <td><input type="text" value="${user.gender || ''}" onchange="updateUser(${index}, 'gender', this.value)" /></td>
-        <td>${new Date(user.registrationDate).toLocaleString()}</td>
-        <td>${user.lastLogin ? new Date(user.lastLogin).toLocaleString() : ''}</td>
-        <td>
-          <button onclick="deleteUser(${index})">Delete</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function updateUser(index, field, value){
-    users[index][field] = value;
-    localStorage.setItem("users", JSON.stringify(users));
-  }
-
-  function deleteUser(index){
-    if(confirm("Are you sure to delete this user?")){
-      users.splice(index, 1);
-      localStorage.setItem("users", JSON.stringify(users));
-      renderTable(users);
+        <td>${u.username}</td><td>${u.fullName}</td><td>${u.phone}</td><td>${u.institute}</td><td>${u.dob}</td><td>${u.gender}</td>
+        <td><button onclick="del('${u.id}')">Delete</button><button onclick="edit('${u.id}')">Edit</button></td>`;
+      document.querySelector("#tbl tbody").appendChild(tr);
     }
-  }
 
-  function searchUsers(){
-    const query = document.getElementById("searchInput").value.toLowerCase();
-    if(!query) {
-      renderTable(users);
-      return;
+    function filter(){
+      const term = document.getElementById("search").value.toLowerCase();
+      document.querySelectorAll("#tbl tbody tr").forEach(tr => {
+        tr.style.display = tr.innerText.toLowerCase().includes(term) ? "" : "none";
+      });
     }
-    const filtered = users.filter(u => 
-      u.username.toLowerCase().includes(query) ||
-      u.phone.toLowerCase().includes(query)
-    );
-    renderTable(filtered);
-  }
 
-  function resetSearch(){
-    document.getElementById("searchInput").value = "";
-    renderTable(users);
-  }
+    function del(id){
+      if (!confirm("Confirm delete?")) return;
+      db.collection("users").doc(id).delete().then(()=>location.reload());
+    }
 
-  function exportToExcel(){
-    const wb = XLSX.utils.book_new();
-    const wsData = [
-      ["Username","Full Name","Mobile","Institution","DOB","Gender","Registration Date","Last Login"]
-    ];
-    users.forEach(user => {
-      wsData.push([
-        user.username,
-        user.fullName,
-        user.phone,
-        user.institute,
-        user.dob,
-        user.gender || '',
-        new Date(user.registrationDate).toLocaleString(),
-        user.lastLogin ? new Date(user.lastLogin).toLocaleString() : ''
-      ]);
-    });
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, "Users");
-    XLSX.writeFile(wb, "RegisteredUsers.xlsx");
-  }
+    function edit(id){
+      const f = all.find(u=>u.id===id);
+      const fn = prompt("Full Name:", f.fullName);
+      if (fn===null) return;
+      const ph = prompt("Phone:", f.phone);
+      const inst = prompt("Institute:", f.institute);
+      const dob = prompt("DOB:", f.dob);
+      const g = prompt("Gender:", f.gender);
+      const pwd = prompt("Password:", f.password);
+      db.collection("users").doc(id).update({ fullName: fn, phone: ph, institute: inst, dob, gender: g, password: pwd }).then(()=>location.reload());
+    }
 
-  function logout(){
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("loggedInUser");
-    window.location.href = "index.html";
-  }
+    function download(){
+      const data = all.map(u=>{ const {id, ...rest} = u; return rest; });
+      const ws = XLSX.utils.json_to_sheet(data), wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Users");
+      XLSX.writeFile(wb, "users.xlsx");
+    }
 
-  // Initial render
-  renderTable(users);
-</script>
+    function logout(){
+      sessionStorage.clear(); location.href="index.html";
+    }
+  </script>
 </body>
 </html>
