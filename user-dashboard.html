@@ -6,25 +6,25 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <style>
-    body {font-family: Arial, sans-serif; background: #eef7f7; margin:0; padding:0;}
-    .header {display:flex; justify-content:flex-end; background:#00796b; color:#fff; padding:10px 20px; position:relative;}
-    .dropdown {position:relative; cursor:pointer;}
-    .dropdown-menu {position:absolute; background:#fff; border:1px solid #ccc; border-radius:4px; top:40px; right:0; display:none;}
-    .dropdown-menu div {padding:10px; cursor:pointer;}
-    .dropdown-menu div:hover {background:#eee;}
-    .section {max-width:600px;margin:20px auto;padding:20px;background:#fff;border-radius:6px;}
-    input, button {width:100%;padding:10px;margin:10px 0;border-radius:4px;}
-    button {background:#00796b;color:#fff;border:none;cursor:pointer;}
+    body { font-family: Arial, sans-serif; background: #eef7f7; margin:0; }
+    .header { display:flex; justify-content:flex-end; background:#00796b; color:#fff; padding:10px 20px; position:relative;}
+    .dropdown { position:relative; cursor:pointer; }
+    .dropdown-menu { position:absolute; top:40px; right:0; background:#fff; border:1px solid #ccc; border-radius:4px; display:none; z-index:1000; }
+    .dropdown-menu div { padding:10px; white-space: nowrap; }
+    .dropdown-menu div:hover { background:#f0f0f0; }
+    .section { max-width:600px; margin:20px auto; padding:20px; background:#fff; border-radius:6px; }
+    input, button { width:100%; padding:10px; margin:10px 0; border-radius:4px; }
+    button { background:#00796b; color:#fff; border:none; cursor:pointer; }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="dropdown" onclick="toggleMenu()">
       <span id="userName">User</span>
-      <img src="https://img.icons8.com/ios-glyphs/30/ffffff/user--v1.png"/>
+      <img src="https://img.icons8.com/ios-glyphs/24/ffffff/user--v1.png"/>
       <div class="dropdown-menu" id="menu">
-        <div onclick="show('profile')">Update Profile</div>
-        <div onclick="show('password')">Change Password</div>
+        <div onclick="showSection('profile')">Update Profile</div>
+        <div onclick="showSection('password')">Change Password</div>
         <div onclick="logout()">Logout</div>
       </div>
     </div>
@@ -36,30 +36,26 @@
   </div>
 
   <div class="section" id="password" style="display:none;">
-    <h3>Change Password</h3><input type="password" id="newPass"><button onclick="changePass()">Update</button>
+    <h3>Change Password</h3>
+    <input type="password" id="newPass"><button onclick="changePass()">Update</button>
   </div>
 
   <div class="section" id="result">
-    <h3>Check SSC Result</h3>
+    <h3>Check SSC Results</h3>
     <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" target="_blank"><input placeholder="Roll 2025" name="roll" required><button>Check</button></form>
-    <form action="https://sresult.bise-ctg.gov.bd/s24/individual/result.php" target="_blank"><input placeholder="Roll 2024" name="roll" required><button>Check</button></form>
-    <form action="https://sresult.bise-ctg.gov.bd/s2023/individual/result.php" target="_blank"><input placeholder="Roll 2023" name="roll" required><button>Check</button></form>
-    <form action="https://sresult.bise-ctg.gov.bd/s22/individual/result.php" target="_blank"><input placeholder="Roll 2022" name="roll" required><button>Check</button></form>
-    <form action="https://sresult.bise-ctg.gov.bd/individual/result.php" target="_blank"><input placeholder="Roll 2021" name="roll" required><button>Check</button></form>
+    <form action="https://sresult.bise-ctg.gov.bd/s24/individual/result.php" target="_blank"><button>Check 2024</button></form>
+    <form action="https://sresult.bise-ctg.gov.bd/s2023/individual/result.php" target="_blank"><button>Check 2023</button></form>
+    <form action="https://sresult.bise-ctg.gov.bd/s22/individual/result.php" target="_blank"><button>Check 2022</button></form>
+    <form action="https://sresult.bise-ctg.gov.bd/individual/result.php" target="_blank"><button>Check 2021</button></form>
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
-      authDomain: "sscresult-b774b.firebaseapp.com",
-      projectId: "sscresult-b774b"
-    };
-    firebase.initializeApp(firebaseConfig);
+    const fb = { apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8", authDomain: "sscresult-b774b.firebaseapp.com", projectId: "sscresult-b774b" };
+    firebase.initializeApp(fb);
     const db = firebase.firestore();
 
-    const role = sessionStorage.getItem("userRole");
-    if (role !== "user") location.href = "index.html";
-    const user = JSON.parse(sessionStorage.getItem("userData"));
+    if (sessionStorage.getItem("role") !== "user") return location.href="index.html";
+    let user = JSON.parse(sessionStorage.getItem("userData"));
     document.getElementById("userName").innerText = user.fullName;
 
     document.getElementById("fn").value = user.fullName;
@@ -72,34 +68,30 @@
       const m = document.getElementById("menu");
       m.style.display = m.style.display === "block" ? "none" : "block";
     }
-
-    function show(sec) {
-      ['profile','password','result'].forEach(s=> document.getElementById(s).style.display = s===sec ? 'block':'none');
+    function showSection(sec) {
+      document.getElementById("profile").style.display = sec==="profile"?"block":"none";
+      document.getElementById("password").style.display = sec==="password"?"block":"none";
+      document.getElementById("result").style.display = sec==="result"?"block":"none";
       document.getElementById("menu").style.display = "none";
     }
-
     function logout() {
       sessionStorage.clear();
       location.href = "index.html";
     }
-
     function saveProfile() {
-      db.collection("users").where("username","==",user.username).get().then(snap => {
-        snap.forEach(doc => doc.ref.update({
+      db.collection("users").where("username","==",user.username).get().then(snap=>{
+        snap.forEach(doc=>doc.ref.update({
           fullName: document.getElementById("fn").value,
           phone: document.getElementById("phone").value,
           institute: document.getElementById("inst").value,
           dob: document.getElementById("dob").value,
           gender: document.getElementById("gender").value
-        }));
-        alert("Profile Updated");
+        }).then(()=>alert("Profile updated!")));
       });
     }
-
     function changePass() {
-      db.collection("users").where("username","==",user.username).get().then(snap => {
-        snap.forEach(doc => doc.ref.update({ password: document.getElementById("newPass").value }));
-        alert("Password Updated");
+      db.collection("users").where("username","==",user.username).get().then(snap=>{
+        snap.forEach(doc=>doc.ref.update({ password: document.getElementById("newPass").value }).then(()=>alert("Password updated!")));
       });
     }
   </script>
