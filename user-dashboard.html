@@ -1,74 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
   <title>User Dashboard</title>
+  <meta charset="UTF-8" />
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <style>
-    body { text-align:center; font-family:Arial,sans-serif; padding:20px; background:#e0f7fa; }
-    .container { max-width:500px; margin:auto; background:white; padding:20px; border-radius:8px; }
-    input, button { width:95%; padding:10px; margin:10px 0; border-radius:6px; border:1px solid #ccc; }
-    button { background:#4db6ac; color:white; cursor:pointer; }
-  </style>
 </head>
 <body>
   <div class="container">
     <h2 id="welcome">Welcome!</h2>
     <button onclick="logout()">Logout</button>
     <h3>Check Your SSC Results</h3>
+
     <form action="https://sresult.bise-ctg.gov.bd/rxto2025/individual/result.php" method="post" target="_blank">
-      <input type="text" name="roll" placeholder="SSC Roll 2025" required><button type="submit">Check 2025</button>
+      <input type="text" name="roll" placeholder="SSC Roll 2025" required>
+      <button type="submit">Check 2025</button>
     </form>
     <form action="https://sresult.bise-ctg.gov.bd/s24/individual/result.php" method="post" target="_blank">
-      <input type="text" name="roll" placeholder="SSC Roll 2024" required><button type="submit">Check 2024</button>
+      <input type="text" name="roll" placeholder="SSC Roll 2024" required>
+      <button type="submit">Check 2024</button>
     </form>
     <form action="https://sresult.bise-ctg.gov.bd/s2023/individual/result.php" method="post" target="_blank">
-      <input type="text" name="roll" placeholder="SSC Roll 2023" required><button type="submit">Check 2023</button>
+      <input type="text" name="roll" placeholder="SSC Roll 2023" required>
+      <button type="submit">Check 2023</button>
     </form>
     <form action="https://sresult.bise-ctg.gov.bd/s22/individual/result.php" method="post" target="_blank">
-      <input type="text" name="roll" placeholder="SSC Roll 2022" required><button type="submit">Check 2022</button>
+      <input type="text" name="roll" placeholder="SSC Roll 2022" required>
+      <button type="submit">Check 2022</button>
     </form>
     <form action="https://sresult.bise-ctg.gov.bd/individual/result.php" method="post" target="_blank">
-      <input type="text" name="roll" placeholder="SSC Roll 2021" required><button type="submit">Check 2021</button>
+      <input type="text" name="roll" placeholder="SSC Roll 2021" required>
+      <button type="submit">Check 2021</button>
     </form>
   </div>
 
   <script>
-    // Firebase config
+    // ✅ Firebase Config
     const firebaseConfig = {
-      apiKey: "...",
-      authDomain: "...",
-      projectId: "sscresult-b774b"
+      apiKey: "AIzaSyA3ZVHmeCvfdfYj4RH6D7nos1_XlS7zoL8",
+      authDomain: "sscresult-b774b.firebaseapp.com",
+      databaseURL: "https://sscresult-b774b-default-rtdb.firebaseio.com",
+      projectId: "sscresult-b774b",
+      storageBucket: "sscresult-b774b.appspot.com",
+      messagingSenderId: "386108440083",
+      appId: "1:386108440083:web:9f8811ef165282269549e6",
+      measurementId: "G-GGZ9Q2489"
     };
+
+    // ✅ Firebase Init
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    // Check user authentication
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        // User not logged in, redirect to login
-        window.location.href = 'index.html';
-      } else {
-        // User is logged in, get user data
-        const uid = user.uid;
-        db.collection('users').doc(uid).get().then(doc => {
-          if (doc.exists) {
-            const data = doc.data();
-            document.getElementById('welcome').innerText = `Welcome, ${data.fullName || 'User'}!`;
-          } else {
-            alert("User record not found!");
-          }
-        });
-      }
-    });
-
-    function logout() {
-      firebase.auth().signOut().then(() => {
-        window.location.href = 'index.html';
+    // ✅ Check if user is logged in
+    const uid = localStorage.getItem("loggedInUserId");
+    if (!uid) {
+      alert("Please login first.");
+      window.location.href = "index.html";
+    } else {
+      db.collection("users").doc(uid).get()
+      .then(doc => {
+        if (doc.exists) {
+          const user = doc.data();
+          document.getElementById("welcome").innerText = `Welcome, ${user.fullName || 'User'}!`;
+        } else {
+          alert("Session invalid. Please login again.");
+          localStorage.removeItem("loggedInUserId");
+          window.location.href = "index.html";
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching user data:", error);
+        alert("Something went wrong. Please login again.");
+        localStorage.removeItem("loggedInUserId");
+        window.location.href = "index.html";
       });
+    }
+
+    // ✅ Logout function
+    function logout() {
+      localStorage.removeItem("loggedInUserId");
+      window.location.href = "index.html";
     }
   </script>
 </body>
