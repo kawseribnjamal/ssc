@@ -5,70 +5,79 @@
   <title>User Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f6f8;
-      padding: 20px;
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .container {
-      max-width: 600px;
-      margin: auto;
+    body {
+      background: #e0e7ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .dashboard-box {
       background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
     }
 
-    h2 {
-      text-align: center;
+    .dashboard-box h2 {
+      color: #1d3557;
+      margin-bottom: 10px;
+    }
+
+    .dashboard-box p {
+      margin-bottom: 25px;
+      font-size: 18px;
       color: #333;
     }
 
-    .welcome {
-      text-align: center;
-      margin-bottom: 30px;
-      font-size: 20px;
-      color: #555;
-    }
-
-    .results {
+    .year-buttons {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;
     }
 
-    button {
-      padding: 10px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
+    .year-buttons button {
+      padding: 12px;
       font-size: 16px;
+      border: none;
+      background-color: #4f46e5;
+      color: white;
+      border-radius: 6px;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
 
-    button:hover {
-      background: #0056b3;
+    .year-buttons button:hover {
+      background-color: #3730a3;
     }
 
-    .logout {
+    .logout-btn {
       margin-top: 30px;
-      text-align: center;
+      background-color: #e11d48 !important;
     }
 
-    .logout button {
-      background-color: #dc3545;
+    .logout-btn:hover {
+      background-color: #9f1239 !important;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="dashboard-box">
     <h2>📋 Dashboard</h2>
-    <div class="welcome" id="welcomeText">Welcome!</div>
+    <p id="welcomeText">Welcome!</p>
 
-    <div class="results">
+    <div class="year-buttons">
       <button onclick="checkResult('2024')">Check Result 2024</button>
       <button onclick="checkResult('2023')">Check Result 2023</button>
       <button onclick="checkResult('2022')">Check Result 2022</button>
@@ -76,9 +85,7 @@
       <button onclick="checkResult('2020')">Check Result 2020</button>
     </div>
 
-    <div class="logout">
-      <button onclick="logout()">🔓 Logout</button>
-    </div>
+    <button class="year-buttons logout-btn" onclick="logout()">🔓 Logout</button>
   </div>
 
   <!-- Firebase SDK -->
@@ -100,7 +107,7 @@
 
     firebase.initializeApp(firebaseConfig);
 
-    // Login Check
+    // Login check
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
         const uid = user.uid;
@@ -111,12 +118,12 @@
           }
         });
       } else {
-        window.location.href = "index.html"; // redirect to login if not logged in
+        window.location.href = "index.html";
       }
     });
 
     function checkResult(year) {
-      alert("Result checking for year: " + year + " (coming soon)");
+      alert(`📅 Result for ${year} is under development!`);
     }
 
     function logout() {
